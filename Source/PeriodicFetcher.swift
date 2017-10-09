@@ -122,8 +122,8 @@ class PeriodicFetcher<T:Equatable> {
         
         currentFuture = getFuture().then { [weak self](value) in
             self?.emitIfPossible(.newData(value))
-            }.error { [weak self](errorFromFuture) in
-                self?.emitIfPossible(.error(errorFromFuture))
+        }.error { [weak self](errorFromFuture) in
+            self?.emitIfPossible(.error(errorFromFuture))
         }
     }
     

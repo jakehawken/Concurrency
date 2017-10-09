@@ -9,7 +9,7 @@ class PeriodicFetcherTests: QuickSpec {
         
         var subject: PeriodicFetcher<Int>!
         var futureGenerator: PeriodicFetcher<Int>.FutureGenerator!
-        let timeInterval: Double = 500
+        var timeInterval: Double = 0.1
         var disposable: Disposable!
         var streamStates = [StreamState<Int>]()
         var showsIsFetching = false
@@ -42,6 +42,7 @@ class PeriodicFetcherTests: QuickSpec {
             afterEach {
                 subject.stopPeriodicFetch()
                 streamStates.removeAll()
+                futureGenerator = nil
                 showsIsFetching = false
                 disposable?.dispose()
                 disposable = nil
@@ -65,6 +66,51 @@ class PeriodicFetcherTests: QuickSpec {
                     expect(streamStates.last).to(equal(StreamState.newData(0)))
                     expect(showsIsFetching).to(equal(false))
                 }
+            }
+            
+            describe("periodic fetching") {
+                var testStart: Date!
+                var valuesAndTimes = [(value: Int, time: Date)]()
+                
+                describe("when uninterupted") {
+                    beforeEach {
+                        futureIndex = 0
+                        
+                        futureGenerator = {
+                            let date = Date()
+                            let promise = Promise<Int>()
+                            
+                            if futureIndex == 0 || futureIndex % 2 == 0 {
+                                promise.resolve(futureIndex)
+                            }
+                            else {
+                                let error = NSError(domain: "Fail.", code: futureIndex, userInfo: nil)
+                                promise.reject(error)
+                            }
+                            
+                            valuesAndTimes.append((value: futureIndex, time: date))
+                            futureIndex += 1
+                            return promise.future
+                        }
+                        
+                        timeInterval = 0.3
+                        
+                        testStart = Date()
+                        subject.startPeriodicFetch()
+                    }
+                    
+                    it("should execute all the calls at the expected interval") {
+                        expect(streamStates.count).toEventually(equal(4))
+                        let interval1 = Int(valuesAndTimes[0].time.timeIntervalSince(testStart) * 10)
+                        let interval2 = Int(valuesAndTimes[1].time.timeIntervalSince(testStart) * 10)
+                        let interval3 = Int(valuesAndTimes[2].time.timeIntervalSince(testStart) * 10)
+                        expect(interval1).to(equal(0))
+                        expect(interval2).to(equal(3))
+                        expect(interval3).to(equal(6))
+                        expect(showsIsFetching).to(equal(true))
+                    }
+                }
+                
             }
             
         }

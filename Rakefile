@@ -20,17 +20,8 @@ LINE_TO_DELETE = "marked for deletion"
 desc 'Run this to install the dependencies for this Rakefile'
 task :setup do
     puts("Installing rakefile dependencies:")
+    system('gem install synx')
     system('gem install xcpretty')
-    puts("Adding pre-commit hook file if necessary...")
-    hooks = Dir.glob(".git/hooks/*").select{ |filename|
-        !filename.end_with?(".sample") and !filename.include? "."
-    }
-    if !hooks.include? "pre-commit"
-        system("cd .git/hooks && echo 'rake precommit_imports
- exit 0' > pre-commit && cd .. && cd ..")
-    else
-        puts("Already exists.")
-    end
 end
 
 desc 'From a feature branch, merges back into develop and pushes'
