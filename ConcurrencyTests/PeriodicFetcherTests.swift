@@ -61,6 +61,7 @@ class PeriodicFetcherTests: QuickSpec {
             afterEach {
                 subject.stopPeriodicFetch()
                 streamStates.removeAll()
+                valuesAndTimes.removeAll()
                 futureGenerator = nil
                 showsIsFetching = false
                 disposable?.dispose()
@@ -112,7 +113,7 @@ class PeriodicFetcherTests: QuickSpec {
                     }
                 }
                 
-                describe("when interrupted") {
+                describe("when interrupted immediately") {
                     
                     beforeEach {
                         futureIndex = 0
@@ -125,10 +126,37 @@ class PeriodicFetcherTests: QuickSpec {
                     }
                     
                     it("should stop emitting data after being told to stop fetching") {
-                        expect(streamStates.count).toEventually(equal(1))
-                        expect(streamStates.count).toNotEventually(equal(2))
-                        expect(streamStates.last).to(equal(.noData))
+                        expect(streamStates.count).toEventually(equal(2))
+                        expect(streamStates.count).toNotEventually(equal(3))
+                        expect(streamStates.last).to(equal(StreamState.newData(0)))
                         expect(subject.isFetching).to(equal(false))
+                    }
+                }
+                
+                describe("when interrupted mid-stream") {
+                    
+                    beforeEach {
+                        futureIndex = 0
+                        futureGenerator = {
+                            if futureIndex > 3 {
+                                subject.stopPeriodicFetch()
+                            }
+                            let promise = Promise<Int>()
+                            promise.resolve(futureIndex)
+                            futureIndex += 1
+                            return promise.future
+                        }
+                        timeInterval = 0.1
+                        
+                        testStart = Date()
+                        subject.startPeriodicFetch()
+                    }
+                    
+                    it("should stop emitting data after being told to stop fetching") {
+                        expect(streamStates.count).toEventually(equal(3))
+                        expect(streamStates.count).toNotEventually(equal(4))
+                        expect(streamStates.last).toEventually(equal(StreamState.newData(2)))
+                        expect(subject.isFetching).toEventually(equal(false))
                     }
                 }
                 
