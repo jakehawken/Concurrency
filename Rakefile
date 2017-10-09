@@ -129,6 +129,11 @@ task :lint do
   system("pod lib lint #{WORKSPACE_NAME}.podspec --allow-warnings")
 end
 
+desc 'Attempts to publish the current version to cocoapods.'
+task :publish do
+  system("pod trunk push #{WORKSPACE_NAME}.podspec --allow-warnings")
+end
+
 desc 'kills xcode and simulator processes'
 task :kill do
     system('[$(ps -A | grep /Applications/Xcode.app/Contents/MacOS/Xcode | grep ??) == ""] || killall "Xcode"')
