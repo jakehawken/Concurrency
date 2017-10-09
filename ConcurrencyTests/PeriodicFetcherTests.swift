@@ -12,6 +12,7 @@ class PeriodicFetcherTests: QuickSpec {
         var timeInterval: Double = 0.1
         var disposable: Disposable!
         var streamStates = [StreamState<Int>]()
+        
         var showsIsFetching = false
         var futureIndex = 0
         let alwaysSucceedGenerator: PeriodicFetcher<Int>.FutureGenerator = {
@@ -19,6 +20,24 @@ class PeriodicFetcherTests: QuickSpec {
             promise.resolve(futureIndex)
             futureIndex += 1
             return promise.future
+        }
+        
+        var valuesAndTimes = [(value: Int, time: Date)]()
+        let alternateSucceedAndFailGenerator: PeriodicFetcher<Int>.FutureGenerator = {
+                let date = Date()
+                let promise = Promise<Int>()
+                
+                if futureIndex == 0 || futureIndex % 2 == 0 {
+                    promise.resolve(futureIndex)
+                }
+                else {
+                    let error = NSError(domain: "Fail.", code: futureIndex, userInfo: nil)
+                    promise.reject(error)
+                }
+                
+                valuesAndTimes.append((value: futureIndex, time: date))
+                futureIndex += 1
+                return promise.future
         }
         
         describe("PeriodicFetcher") {
@@ -70,29 +89,11 @@ class PeriodicFetcherTests: QuickSpec {
             
             describe("periodic fetching") {
                 var testStart: Date!
-                var valuesAndTimes = [(value: Int, time: Date)]()
                 
                 describe("when uninterupted") {
                     beforeEach {
                         futureIndex = 0
-                        
-                        futureGenerator = {
-                            let date = Date()
-                            let promise = Promise<Int>()
-                            
-                            if futureIndex == 0 || futureIndex % 2 == 0 {
-                                promise.resolve(futureIndex)
-                            }
-                            else {
-                                let error = NSError(domain: "Fail.", code: futureIndex, userInfo: nil)
-                                promise.reject(error)
-                            }
-                            
-                            valuesAndTimes.append((value: futureIndex, time: date))
-                            futureIndex += 1
-                            return promise.future
-                        }
-                        
+                        futureGenerator = alternateSucceedAndFailGenerator
                         timeInterval = 0.3
                         
                         testStart = Date()
@@ -108,6 +109,26 @@ class PeriodicFetcherTests: QuickSpec {
                         expect(interval2).to(equal(3))
                         expect(interval3).to(equal(6))
                         expect(showsIsFetching).to(equal(true))
+                    }
+                }
+                
+                describe("when interrupted") {
+                    
+                    beforeEach {
+                        futureIndex = 0
+                        futureGenerator = alternateSucceedAndFailGenerator
+                        timeInterval = 0.1
+                        
+                        testStart = Date()
+                        subject.startPeriodicFetch()
+                        subject.stopPeriodicFetch()
+                    }
+                    
+                    it("should stop emitting data after being told to stop fetching") {
+                        expect(streamStates.count).toEventually(equal(1))
+                        expect(streamStates.count).toNotEventually(equal(2))
+                        expect(streamStates.last).to(equal(.noData))
+                        expect(subject.isFetching).to(equal(false))
                     }
                 }
                 
