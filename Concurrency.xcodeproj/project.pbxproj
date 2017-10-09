@@ -12,6 +12,7 @@
 		160095891F8AAD7D002B6CC7 /* Promise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721B41F8AAAE5006D261B /* Promise.swift */; };
 		1600958A1F8AAD7F002B6CC7 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721B51F8AAAE5006D261B /* Result.swift */; };
 		1600958E1F8B2F16002B6CC7 /* PromiseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1600958D1F8B2F16002B6CC7 /* PromiseTests.swift */; };
+		160095921F8B3757002B6CC7 /* ResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160095911F8B3757002B6CC7 /* ResultTests.swift */; };
 		16E721941F8AA979006D261B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721931F8AA979006D261B /* AppDelegate.swift */; };
 		16E721961F8AA979006D261B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721951F8AA979006D261B /* ViewController.swift */; };
 		16E721991F8AA979006D261B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 16E721971F8AA979006D261B /* Main.storyboard */; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		160095861F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodicFetcherTests.swift; sourceTree = "<group>"; };
 		1600958D1F8B2F16002B6CC7 /* PromiseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromiseTests.swift; sourceTree = "<group>"; };
+		160095911F8B3757002B6CC7 /* ResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultTests.swift; sourceTree = "<group>"; };
 		16E721901F8AA979006D261B /* Concurrency.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Concurrency.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16E721931F8AA979006D261B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		16E721951F8AA979006D261B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				16E721AA1F8AA979006D261B /* Info.plist */,
 				160095861F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift */,
 				1600958D1F8B2F16002B6CC7 /* PromiseTests.swift */,
+				160095911F8B3757002B6CC7 /* ResultTests.swift */,
 			);
 			path = ConcurrencyTests;
 			sourceTree = "<group>";
@@ -364,6 +367,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				160095921F8B3757002B6CC7 /* ResultTests.swift in Sources */,
 				160095871F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift in Sources */,
 				1600958E1F8B2F16002B6CC7 /* PromiseTests.swift in Sources */,
 			);
