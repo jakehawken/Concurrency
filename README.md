@@ -1,8 +1,8 @@
 # Concurrency
 
-[![Version](https://img.shields.io/cocoapods/v/JHHelpers.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
-[![License](https://img.shields.io/cocoapods/l/JHHelpers.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
-[![Platform](https://img.shields.io/cocoapods/p/JHHelpers.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
+[![Version](https://img.shields.io/cocoapods/v/Concurrency.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
+[![License](https://img.shields.io/cocoapods/l/Concurrency.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
+[![Platform](https://img.shields.io/cocoapods/p/Concurrency.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
 
 ## Requirements
 
