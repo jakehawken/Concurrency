@@ -1,4 +1,4 @@
-# JHHelpers
+# Concurrency
 
 [![Version](https://img.shields.io/cocoapods/v/JHHelpers.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
 [![License](https://img.shields.io/cocoapods/l/JHHelpers.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
@@ -11,7 +11,7 @@ The included Rakefile makes use of the [Synx](https://github.com/venmo/synx) too
 
 ## Installation
 
-JHHelpers is available through [CocoaPods](http://cocoapods.org). To install
+Concurrency is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
