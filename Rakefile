@@ -19,9 +19,24 @@ LINE_TO_DELETE = "marked for deletion"
 
 desc 'Run this to install the dependencies for this Rakefile'
 task :setup do
-    puts("Installing rakefile dependencies:")
-    system('gem install synx')
-    system('gem install xcpretty')
+    puts("Installing rakefile dependencies:\n")
+    synxInstallSuccessful = system('gem install synx')
+    xcprettyInstallSuccessful = system('gem install xcpretty')
+    allSuccessful = synxInstallSuccessful and xcprettyInstallSuccessful
+    if allSuccessful
+        puts("\nAll rakefile dependencies installed successfully.")
+    else
+        outputString = "\nSome or all rakefile dependencies installed unsuccessfully:"
+        if !synxInstallSuccessful
+            outputString << " Synx installation failed."
+        end
+
+        if !xcprettyInstallSuccessful
+            outputString << " Xcpretty installation failed."
+        end
+
+        puts(outputString)
+    end
 end
 
 desc 'From a feature branch, merges back into develop and pushes'
@@ -160,7 +175,7 @@ task :imports do
 end
 
 desc 'runs the imports command on all files modified on the current git branch'
-task :branch_imports do
+task :imports_branch do
     branchName = `git branch | grep "*"`.gsub('* ', '').split("\n").first
 
     if branchName == "develop"
@@ -178,28 +193,6 @@ task :branch_imports do
         end
     end
     puts("Checking all Swift files modified on branch: #{branchName}.")
-    sortImportsAndPrintResultsForFiles modifiedSwiftFiles
-end
-
-desc'runs the imports command on all files modified since the last commit'
-task :precommit_imports do
-    branchName = `git branch | grep "*"`.gsub('* ', '').split("\n").first
-
-    if branchName == "develop"
-        puts("On develop. No diff to consider.")
-        exit
-    end
-
-    diffSwiffFiles = `git diff --name-status | grep swift`.split("\n")
-
-    modifiedSwiftFiles = []
-
-    diffSwiffFiles.each do |line|
-        if line.start_with?("M\t") or line.start_with?("A\t")
-            modifiedSwiftFiles << line.split("\t").last
-        end
-    end
-    puts("Checking Swift files modified since the last commit.")
     sortImportsAndPrintResultsForFiles modifiedSwiftFiles
 end
 
@@ -365,28 +358,29 @@ def handleImportsForFile(filename)
     #     puts(line)
     # end
 
-    if boilerplateLines.count > 0
-        boilerplateLines << "\n"
-    end
-
     #append flagged imports to imports
     if flaggedImportLines.count > 0
-        importLines << "\n"
-        flaggedImportLines.each do |flaggedImport|
-            importLines << flaggedImport
+        if importLines.count > 0
+            importLines << "\n"
         end
-    end
-
-    # ensure that importLines ends with 2 empty lines
-    while importLines[importLines.count - 2] != "\n" do
-        importLines << "\n"
+        importLines = importLines + flaggedImportLines
     end
 
     newRows = []
 
-    newRows << boilerplateLines
-    newRows << importLines
-    newRows << bodyLines
+    if boilerplateLines.count > 0
+        newRows << boilerplateLines
+    end
+
+    if importLines.count > 0
+        newRows << "\n"
+        newRows << importLines
+    end
+
+    if bodyLines.count > 0
+        newRows << "\n\n"
+        newRows << bodyLines
+    end
 
     newRowsConsolidated = newRows.join
 
