@@ -7,53 +7,52 @@ import Foundation
 
 
 class Promise<T> {
-    
+
     let future = Future<T>()
-    
+
     func resolve(_ val: T) {
         future.resolve(val)
     }
-    
+
     func reject(_ err: Error) {
         future.reject(err)
     }
-    
+
 }
 
 class Future<T> {
     typealias ThenBlock  = (T)->()
     typealias ErrorBlock = (Error)->()
-    
+
     private var thenBlock: ThenBlock?
     private var errorBlock: ErrorBlock?
     private var childFuture: Future?
-    
+
     private let operationQueue = OperationQueue()
-    
+
     //MARK: - PUBLIC -
-    
+
     private(set) var value: T?
     private(set) var error: Error?
-    
+
     public var succeeded: Bool {
         return value != nil
     }
-    
+
     public var failed: Bool {
         return error != nil
     }
-    
+
     public var isComplete: Bool {
         return succeeded || failed
     }
-    
+
     @discardableResult public func then(_ callback: @escaping ThenBlock) -> Future<T> {
         operationQueue.addOperation {
             if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
                 callback(value)
             }
-            
-            if self.thenBlock == nil {
+            else if self.thenBlock == nil {
                 self.thenBlock = callback
             }
             else {
@@ -62,14 +61,13 @@ class Future<T> {
         }
         return self
     }
-    
+
     @discardableResult public func error(_ callback: @escaping ErrorBlock) -> Future<T> {
         operationQueue.addOperation {
             if let error = self.error { //If the future has already been rejected with an error. Call the block immediately.
                 callback(error)
             }
-            
-            if self.errorBlock == nil {
+            else if self.errorBlock == nil {
                 self.errorBlock = callback
             }
             else {
