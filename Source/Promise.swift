@@ -7,66 +7,77 @@ import Foundation
 
 
 class Promise<T> {
-    
+
     let future = Future<T>()
-    
+
     func resolve(_ val: T) {
         future.resolve(val)
     }
-    
+
     func reject(_ err: Error) {
         future.reject(err)
     }
-    
+
 }
 
 class Future<T> {
     typealias ThenBlock  = (T)->()
     typealias ErrorBlock = (Error)->()
-    
+
     private var thenBlock: ThenBlock?
     private var errorBlock: ErrorBlock?
-    
+    private var childFuture: Future?
+
     private let operationQueue = OperationQueue()
-    
+
     //MARK: - PUBLIC -
     
     fileprivate(set) var value: T?
     fileprivate(set) var error: Error?
     
-    var succeeded: Bool {
+    public var succeeded: Bool {
         return value != nil
     }
-    
-    var failed: Bool {
+
+    public var failed: Bool {
         return error != nil
     }
-    
-    var isComplete: Bool {
+
+    public var isComplete: Bool {
         return succeeded || failed
     }
-    
-    @discardableResult func then(_ callback: @escaping ThenBlock) -> Future<T> {
+
+    @discardableResult public func then(_ callback: @escaping ThenBlock) -> Future<T> {
         operationQueue.addOperation {
             if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
                 callback(value)
             }
-            
-            self.thenBlock = callback
+            else if self.thenBlock == nil {
+                self.thenBlock = callback
+            }
+            else {
+                self.appendChild().then(callback)
+            }
         }
         return self
     }
-    
-    @discardableResult func error(_ callback: @escaping ErrorBlock) -> Future<T> {
+
+    @discardableResult public func error(_ callback: @escaping ErrorBlock) -> Future<T> {
         operationQueue.addOperation {
             if let error = self.error { //If the future has already been rejected with an error. Call the block immediately.
                 callback(error)
             }
-            
-            self.errorBlock = callback
+            else if self.errorBlock == nil {
+                self.errorBlock = callback
+            }
+            else {
+                self.appendChild().error(callback)
+            }
         }
         return self
     }
+    
+    //MARK: - PRIVATE
     
     fileprivate func resolve(_ val: T) {
         operationQueue.addOperation {
@@ -77,6 +88,7 @@ class Future<T> {
             self.value = val
             
             self.thenBlock?(val)
+            self.childFuture?.resolve(val)
         }
     }
     
@@ -89,7 +101,17 @@ class Future<T> {
             self.error = err
             
             self.errorBlock?(err)
+            self.childFuture?.reject(err)
         }
+    }
+    
+    private func appendChild() -> Future<T> {
+        if let child = childFuture {
+            return child.appendChild()
+        }
+        let future = Future<T>()
+        childFuture = future
+        return future
     }
 }
 
