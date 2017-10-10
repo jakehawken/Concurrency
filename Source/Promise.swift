@@ -76,35 +76,35 @@ class Future<T> {
         }
         return self
     }
-    
+
     //MARK: - PRIVATE
-    
+
     fileprivate func resolve(_ val: T) {
         operationQueue.addOperation {
             if self.isComplete {
                 return
             }
-            
+
             self.value = val
-            
+
             self.thenBlock?(val)
             self.childFuture?.resolve(val)
         }
     }
-    
+
     fileprivate func reject(_ err: Error) {
         operationQueue.addOperation {
             if self.isComplete {
                 return
             }
-            
+
             self.error = err
-            
+
             self.errorBlock?(err)
             self.childFuture?.reject(err)
         }
     }
-    
+
     private func appendChild() -> Future<T> {
         if let child = childFuture {
             return child.appendChild()
