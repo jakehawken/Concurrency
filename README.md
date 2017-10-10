@@ -6,7 +6,7 @@
 
 ## Requirements
 
-`PeriodicFetcher` uses the [RxSwift](https://github.com/ReactiveX/RxSwift) library. This is included as a dependency and requires not extra setup other than running the 'pod install' command.
+`PeriodicFetcher` uses the [RxSwift](https://github.com/ReactiveX/RxSwift) library. This is included as a dependency and requires no extra setup other than running the 'pod install' command.
 The included Rakefile makes use of the [Synx](https://github.com/venmo/synx) tool by Venmo as well as [XCPretty](https://github.com/supermarin/xcpretty). Running `rake setup` will install these dependencies.
 
 ## Installation
