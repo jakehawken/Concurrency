@@ -40,7 +40,7 @@ class PeriodicFetcher<T:Equatable> {
         return timer?.timeInterval == getTimeInterval()
     }
     
-    private var shouldEmit = true
+    private var shouldEmit = false
     
     //MARK: injected
     
@@ -80,9 +80,9 @@ class PeriodicFetcher<T:Equatable> {
     
     func stopPeriodicFetch() {
         shouldEmit = false
+        currentFuture = nil
         timer?.invalidate()
         timer = nil
-        currentFuture = nil
     }
     
     internal func fetchOnce() {
@@ -109,9 +109,9 @@ class PeriodicFetcher<T:Equatable> {
     }
     
     private func newTimer() -> Timer {
-        return Timer.scheduledTimer(withTimeInterval: getTimeInterval(), repeats: true, block: { [weak self](timer) in
+        return Timer.scheduledTimer(withTimeInterval: getTimeInterval(), repeats: true) { [weak self](_) in
             self?.fetch()
-        })
+        }
     }
     
     private func fetch() {
@@ -128,7 +128,8 @@ class PeriodicFetcher<T:Equatable> {
     }
     
     private func emitIfPossible(_ streamState: StreamState<T>) {
-        if !shouldEmit {
+        guard shouldEmit else {
+            stopPeriodicFetch()
             return
         }
         variable.value = streamState

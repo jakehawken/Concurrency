@@ -126,9 +126,9 @@ class PeriodicFetcherTests: QuickSpec {
                     }
                     
                     it("should stop emitting data after being told to stop fetching") {
-                        expect(streamStates.count).toEventually(equal(2))
-                        expect(streamStates.count).toNotEventually(equal(3))
-                        expect(streamStates.last).to(equal(StreamState.newData(0)))
+                        expect(streamStates.count).toEventually(equal(1))
+                        expect(streamStates.count).toNotEventually(equal(2))
+                        expect(streamStates.last).to(equal(StreamState.noData))
                         expect(subject.isFetching).to(equal(false))
                     }
                 }
