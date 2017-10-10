@@ -24,8 +24,8 @@ class Future<T> {
     typealias ThenBlock  = (T)->()
     typealias ErrorBlock = (Error)->()
     
-    private var thenBlock: ThenBlock?
-    private var errorBlock: ErrorBlock?
+    private var thenBlocks:  [ThenBlock]  = []
+    private var errorBlocks: [ErrorBlock] = []
     
     private let operationQueue = OperationQueue()
     
@@ -51,8 +51,9 @@ class Future<T> {
             if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
                 callback(value)
             }
-            
-            self.thenBlock = callback
+            else {
+                self.thenBlocks.append(callback)
+            }
         }
         return self
     }
@@ -62,8 +63,9 @@ class Future<T> {
             if let error = self.error { //If the future has already been rejected with an error. Call the block immediately.
                 callback(error)
             }
-            
-            self.errorBlock = callback
+            else {
+                self.errorBlocks.append(callback)
+            }
         }
         return self
     }
@@ -76,7 +78,9 @@ class Future<T> {
             
             self.value = val
             
-            self.thenBlock?(val)
+            self.thenBlocks.forEach({ (thenBlock) in
+                thenBlock(val)
+            })
         }
     }
     
@@ -88,7 +92,9 @@ class Future<T> {
             
             self.error = err
             
-            self.errorBlock?(err)
+            self.errorBlocks.forEach({ (errorBlock) in
+                errorBlock(err)
+            })
         }
     }
 }
