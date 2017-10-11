@@ -162,7 +162,7 @@ end
 desc 'sorts all imports & removes duplicates, and standardizes tops of all .swift files'
 task :imports do
 
-    swiftFiles = Dir.glob("Source/*.swift")
+    swiftFiles = Dir.glob("Source/*.swift") + Dir.glob("ConcurrencyTests/*.swift")
 
     # # Debug - This is for debugging on a single file.
     # # To use, comment out the .each loop above and uncomment the following,
@@ -198,15 +198,16 @@ end
 
 desc 'calls "handleImportsForFile" on an array of swift files and prints the results of all calls'
 def sortImportsAndPrintResultsForFiles(filesToModify)
-    puts("Swift file(s) to scan:\n")
-    if filesToModify.count == 0
-        puts ("NONE.")
-        return
-    else
-        filesToModify.each do |fileName|
-            puts(fileName)
-        end
-    end
+    # # Debug
+    # puts("Swift file(s) to scan:\n")
+    # if filesToModify.count == 0
+    #     puts ("NONE.")
+    #     return
+    # else
+    #     filesToModify.each do |fileName|
+    #         puts(fileName)
+    #     end
+    # end
 
     filesChanged = 0
     filesNotChanged = 0
@@ -373,12 +374,16 @@ def handleImportsForFile(filename)
     end
 
     if importLines.count > 0
-        newRows << "\n"
+        if newRows.count > 0
+            newRows << "\n"
+        end
         newRows << importLines
     end
 
     if bodyLines.count > 0
-        newRows << "\n\n"
+        if newRows.count > 0
+            newRows << "\n\n"
+        end
         newRows << bodyLines
     end
 
