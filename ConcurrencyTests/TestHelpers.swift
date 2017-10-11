@@ -14,3 +14,13 @@ func item<T>(_ item: Any?, isA: T.Type, and evalBlock:(T)->(Bool)) -> Bool {
         return false
     }
 }
+
+
+extension Date {
+    func isAfter(_ otherDate: Date?) -> Bool {
+        guard let otherDate = otherDate else {
+            return false
+        }
+        return timeIntervalSince(otherDate) > 0
+    }
+}

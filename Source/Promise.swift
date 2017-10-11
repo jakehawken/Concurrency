@@ -48,31 +48,27 @@ class Future<T> {
     }
 
     @discardableResult public func then(_ callback: @escaping ThenBlock) -> Future<T> {
-        operationQueue.addOperation {
-            if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
-                callback(value)
-            }
-            else if self.thenBlock == nil {
-                self.thenBlock = callback
-            }
-            else {
-                self.appendChild().then(callback)
-            }
+        if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
+            callback(value)
+        }
+        else if self.thenBlock == nil {
+            self.thenBlock = callback
+        }
+        else {
+            self.appendChild().then(callback)
         }
         return self
     }
 
     @discardableResult public func error(_ callback: @escaping ErrorBlock) -> Future<T> {
-        operationQueue.addOperation {
-            if let error = self.error { //If the future has already been rejected with an error. Call the block immediately.
-                callback(error)
-            }
-            else if self.errorBlock == nil {
-                self.errorBlock = callback
-            }
-            else {
-                self.appendChild().error(callback)
-            }
+        if let error = self.error { //If the future has already been rejected with an error. Call the block immediately.
+            callback(error)
+        }
+        else if self.errorBlock == nil {
+            self.errorBlock = callback
+        }
+        else {
+            self.appendChild().error(callback)
         }
         return self
     }
@@ -80,27 +76,31 @@ class Future<T> {
     //MARK: - PRIVATE
 
     fileprivate func resolve(_ val: T) {
+        if self.isComplete {
+            return
+        }
+        
+        self.value = val
+        
         operationQueue.addOperation {
-            if self.isComplete {
-                return
-            }
-
-            self.value = val
-
             self.thenBlock?(val)
+        }
+        operationQueue.addOperation {
             self.childFuture?.resolve(val)
         }
     }
 
     fileprivate func reject(_ err: Error) {
+        if self.isComplete {
+            return
+        }
+        
+        self.error = err
+        
         operationQueue.addOperation {
-            if self.isComplete {
-                return
-            }
-
-            self.error = err
-
             self.errorBlock?(err)
+        }
+        operationQueue.addOperation {
             self.childFuture?.reject(err)
         }
     }
@@ -109,9 +109,11 @@ class Future<T> {
         if let child = childFuture {
             return child.appendChild()
         }
-        let future = Future<T>()
-        childFuture = future
-        return future
+        else {
+            let future = Future<T>()
+            childFuture = future
+            return future
+        }
     }
 }
 
@@ -129,7 +131,7 @@ extension Future {
         return future
     }
     
-    func flatMap<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q> {
+    public func map<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q> {
         let promise = Promise<Q>()
         
         then { (value) in
