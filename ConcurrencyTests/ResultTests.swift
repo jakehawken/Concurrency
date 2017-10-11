@@ -1,7 +1,7 @@
-import Quick
 import Nimble
-
+import Quick
 @testable import Concurrency
+
 
 class ResultTests: QuickSpec {
     override func spec() {
