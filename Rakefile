@@ -72,12 +72,18 @@ task :branches_and_remotes do
     puts("Branches to delete:\n#{branches}")
 
     branches.each do |branch|
-        if !branch.include? "develop"
-            system("git branch -D #{branch} && git push origin :#{branch}")
-        end
+        deleteLocalAndRemote branch
     end
 
     puts("All branches and corresponding remotes for #{WORKSPACE_NAME} deleted.")
+end
+
+def deleteLocalAndRemote(branchName)
+    if !branchName.include? "develop"
+        system("git branch -D #{branch} && git push origin :#{branch}")
+    elsif
+        puts("Nope! Not gonna let you do that, buddy.")
+    end
 end
 
 desc "From a feature branch, grabs all of the newest changes from orign/develop and merges them in, then pushes to the feature branch's remote."
