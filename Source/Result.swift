@@ -74,8 +74,9 @@ enum Result<T> {
                 return .success(value)
             case .originalError(let error):
                 return .error(error)
-            case .mappingError(_):
-                return .error(self)
+            case .mappingError(let value):
+                let error = NSError.cantMap(value: value, toType: Q.self)
+                return .error(error)
             }
         }
     }

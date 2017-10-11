@@ -31,10 +31,10 @@ class Future<T> {
     private let operationQueue = OperationQueue()
 
     //MARK: - PUBLIC -
-
-    private(set) var value: T?
-    private(set) var error: Error?
-
+    
+    fileprivate(set) var value: T?
+    fileprivate(set) var error: Error?
+    
     public var succeeded: Bool {
         return value != nil
     }
@@ -113,4 +113,39 @@ class Future<T> {
         childFuture = future
         return future
     }
+}
+
+extension Future {
+    
+    public static func preResolved(value: T) -> Future<T> {
+        let future = Future<T>()
+        future.value = value
+        return future
+    }
+    
+    public static func preRejected(error: Error) -> Future<T> {
+        let future = Future<T>()
+        future.error = error
+        return future
+    }
+    
+    public func flatMap<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q> {
+        let promise = Promise<Q>()
+        
+        then { (value) in
+            if let mapVal = block(value) {
+                promise.resolve(mapVal)
+            }
+            else {
+                let cantMapError = NSError.cantMap(value: value, toType: Q.self)
+                promise.reject(cantMapError)
+            }
+        }
+        error { (error) in
+            promise.reject(error)
+        }
+        
+        return promise.future
+    }
+    
 }
