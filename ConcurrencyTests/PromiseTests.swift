@@ -56,6 +56,8 @@ class PromiseTests: QuickSpec {
                 successValue = nil
                 errorValue = nil
                 
+                subject = Promise<Int>()
+                
                 subject.future.then({ (value) in
                     primaryTimestamp = Date()
                     successValue = value
@@ -113,7 +115,7 @@ class PromiseTests: QuickSpec {
                     expect(secondarySuccessValue).toEventually(equal("5"))
                     expect(secondaryTimeStamp?.isAfter(primaryTimestamp!)).toEventually(beTrue())
                     expect(tertiarySuccessValue).toEventually(equal(5))
-                    expect(tertiaryTimeStamp?.isAfter(secondaryTimeStamp!)).toEventually(beTrue())
+                    expect(tertiaryTimeStamp?.isAfter(secondaryTimeStamp)).toEventually(beTrue())
                 }
                 
             }
@@ -152,7 +154,7 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("flat-mapping") {
+        describe("mapping") {
             var future: Future<Int>!
             var mappedFuture: Future<String>!
             
@@ -164,7 +166,7 @@ class PromiseTests: QuickSpec {
             context("when the map block results in nil") {
                 beforeEach {
                     subject.resolve(3)
-                    mappedFuture = future.flatMap({ (intValue) -> (String?) in
+                    mappedFuture = future.map({ (intValue) -> (String?) in
                         return nil
                     })
                 }
@@ -180,7 +182,7 @@ class PromiseTests: QuickSpec {
             
             context("when the map block results in non-nil") {
                 beforeEach {
-                    mappedFuture = future.flatMap({ (intValue) -> (String?) in
+                    mappedFuture = future.map({ (intValue) -> (String?) in
                         return "\(intValue)"
                     })
                 }

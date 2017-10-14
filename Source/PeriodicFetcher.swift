@@ -34,6 +34,7 @@ class PeriodicFetcher<T:Equatable> {
     
     private var variable: Variable<StreamState<T>> = Variable(.noData)
     private var timer: Timer?
+    private let operationQueue = OperationQueue()
     fileprivate let disposeBag = DisposeBag()
     
     private var timeIntervalIsCurrent: Bool {
@@ -121,9 +122,13 @@ class PeriodicFetcher<T:Equatable> {
         }
         
         currentFuture = getFuture().then { [weak self](value) in
-            self?.emitIfPossible(.newData(value))
+            self?.operationQueue.addOperation { [weak self] in
+                self?.emitIfPossible(.newData(value))
+            }
         }.error { [weak self](errorFromFuture) in
-            self?.emitIfPossible(.error(errorFromFuture))
+            self?.operationQueue.addOperation { [weak self] in
+                self?.emitIfPossible(.error(errorFromFuture))
+            }
         }
     }
     
