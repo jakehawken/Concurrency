@@ -4,9 +4,19 @@
 [![License](https://img.shields.io/cocoapods/l/Concurrency.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
 [![Platform](https://img.shields.io/cocoapods/p/Concurrency.svg?style=flat)](http://cocoapods.org/pods/Concurrency)
 
-Concurrency is a small toolkit for handling concurrency and encapsulating asynchronous work in the Swift programming language. It contains three main types: `Promise`, `Result`, and `PeriodicFetcher`.
+Concurrency is a small toolkit for handling concurrency and encapsulating asynchronous work in the Swift programming language. There are several different paradigms for handling concurrency, and I think they each have specific use cases. Most notably, for continuous updates, subscriptions, and streams of data, [RxSwift](https://github.com/ReactiveX/RxSwift) is pretty much king. Concurrency sets out to fill out the other use cases, and, early on, I think I make a fairly solid case why you should never use the old `(ExpectedType?, Error?)->()`-style completion handler ever again.
 
-`Result` is a result type for encapsulating the success/error state of a callback.
+__Table of Contents__
+* [The Cast of Characters](#the-cast-of-characters)
+* [The First Set of Problems to Solve](#the-first-set-of-problems-to-solve)
+* [`Result<T>`](#result)
+* [`Promise<T>` and `Future<T>`](#promise-and-future)
+* [`Periodic Fetcher`](#periodic-fetcher)
+
+## The Cast of Characters
+Concurrency contains three main types: `Promise`, `Result`, and `PeriodicFetcher`.
+
+`Result` is a [result type](https://en.wikipedia.org/wiki/Result_type) for encapsulating the success/error state of a callback.
 
 `Promise` is a promise/future implementation inspired by [BrightFutures](https://github.com/Thomvis/BrightFutures) and [Deferred](https://github.com/kseebaldt/deferred).
 
@@ -33,15 +43,15 @@ getAString { (string, error) in
 }
 ```
 
-The user has to type this all this logic out by hand, and gets no autocomplete, and no help from the compiler about missed logical cases.
+The user has to type this all this logic out by hand, gets no autocomplete, and no help from the compiler about missed logical cases.
 
-Which leads me to the other major problem with this pattern: Did you notice there's no else case? Despite covering the two logically expected result states, this is an incomplete logical statement. Horrifyingly, the nature of the callback's signature allows for the possibility of both arguments to be nil, which is a state that makes no sense to the consumer but they're kind of syntactically forced to handle it.
+This also reveals the other major problem with this pattern: Did you notice there's no else case? Despite covering the two logically expected result states, this is an incomplete logical statement. Horrifyingly, the nature of the callback's signature allows for the possibility of both arguments to be nil, which is a state that makes absolutely no sense to the consumer. But the fact that it's possible means that they're kind of forced to handle it.
 
-Unwrapping optionals is already something that Swift developers have to do too often anyway, and nobody likes ambiguous, potentially incoherent states of affairs, so what's the solution?
+Unwrapping optionals is already something that Swift developers have to do too often anyway, and nobody likes ambiguous, potentially incoherent states of affairs, so what's the solution? Enter stage left: My good buddy `Result<T>`.
 
-### `Result<T>`
+### Result
 
-Swift enums to the rescue! Seriously, the immensely powerful enums are probably my favorite part of the Swift language. And `Result` is an excellent example of why. In the example above, the method signature had a callback that passed back two optional values. `Result` allows you to collapse that down to a single, non-optional value:
+Swift enums to the rescue! Seriously, Swift's immensely powerful enums are probably my favorite part of the language. And `Result` is an excellent example of why. In the example above, the method signature has a callback that passes back two optional values. `Result` allows you to collapse that down to a single, non-optional value, like so:
 
 ```Swift
 func getAString(_ completionHandler: (Result<String>)->())
@@ -64,9 +74,9 @@ getAString { (result) in
 
 While not objectively much more concise than the previous example, a lot of this will be autocompleted by Xcode, and the compiler will let you know if your switch statement is missing a case.
 
-Which brings me to the other option `Result` gives you. Sweet, sweet syntactic sugar! I've included some functional-style methods on `Result` which will be very familiar to anyone who's worked with RxSwift before. I've included `onSuccess` and `onError` methods which allow the consumer to implement success blocks and error blocks independently of one another, so they can do one, the other, or both.
+However, this brings me to the other option `Result` gives you. __Sweet, sweet syntactic sugar!__ I've included some functional-style methods on `Result` which will be very familiar to anyone who's worked with RxSwift before. I've included `onSuccess` and `onError` methods which allow the consumer to implement success blocks and error blocks independently of one another, so they can do one, the other, or both.
 
-Both:
+#### Both:
 
 ```Swift
 getAString { (result) in
@@ -78,7 +88,7 @@ getAString { (result) in
 }
 ```
 
-or just one:
+#### or just one:
 
 ```Swift
 getAString { (result) in
@@ -92,7 +102,7 @@ So, when we have to use completion blocks, `Result` is a nice, clean, compiler-a
 
 #### The other problem with completion blocks: [BLOCKCEPTION!](https://www.youtube.com/watch?v=L6aT_oEhIKo)
 
-Often, asynchronous work relies on asynchronous work. In a world of traditional completion blocks, this means, at very least, writing a method that has a completion handler, which calls a method which has a completion handler. God forbid you your asynchronous method need to call multiple completion blocks in succession. Then, even if you only implement the success blocks (!!!) you'd still end up with a nightmare like this:
+Often, asynchronous work relies on other asynchronous work. In a world of traditional completion blocks, this means, at very least, writing a method that has a completion handler, which calls a method which has a completion handler. And god forbid your asynchronous method need to call multiple completion blocks in succession. Then, even if you only implement the success blocks (yikes!) you'd still end up with a nightmare like this:
 
 ```Swift
 func getAStringWithTwoNumbersInIt(_ completionHandler:(Result<String>)->()) {
@@ -108,9 +118,9 @@ func getAStringWithTwoNumbersInIt(_ completionHandler:(Result<String>)->()) {
 }
 ```
 
-The Pyramid of Doom: It's not just for optional binding anymore! So, how do we solve this?
+#### The Pyramid of Doom: It's not just for optional binding anymore! So, how do we solve this?
 
-### `Promise<T>` and `Future<T>`
+### Promise and Future
 
 [STILL BEING WRITTEN]
 
