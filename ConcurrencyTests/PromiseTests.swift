@@ -50,12 +50,16 @@ class PromiseTests: QuickSpec {
         describe("using then() add error() blocks") {
             var successValue: Int?
             var errorValue: NSError?
+            var primaryTimestamp: Date?
             
             beforeEach {
                 successValue = nil
                 errorValue = nil
                 
+                subject = Promise<Int>()
+                
                 subject.future.then({ (value) in
+                    primaryTimestamp = Date()
                     successValue = value
                 }).error({ (error) in
                   errorValue = error as NSError
@@ -86,6 +90,36 @@ class PromiseTests: QuickSpec {
                 }
             }
             
+            context("when there are multiple then blocks") {
+                var secondarySuccessValue: String?
+                var secondaryTimeStamp: Date?
+                var tertiarySuccessValue: Float?
+                var tertiaryTimeStamp: Date?
+                
+                beforeEach {
+                    subject.future.then({ (value) in
+                        secondaryTimeStamp = Date()
+                        secondarySuccessValue = "\(value)"
+                    })
+                    
+                    subject.future.then({ (value) in
+                        tertiaryTimeStamp = Date()
+                        tertiarySuccessValue = Float(value)
+                    })
+                    
+                    subject.resolve(5)
+                }
+                
+                it("should execute the then blocks in order") {
+                    expect(successValue).toEventually(equal(5))
+                    expect(secondarySuccessValue).toEventually(equal("5"))
+                    expect(secondaryTimeStamp?.isAfter(primaryTimestamp!)).toEventually(beTrue())
+                    expect(tertiarySuccessValue).toEventually(equal(5))
+                    expect(tertiaryTimeStamp?.isAfter(secondaryTimeStamp)).toEventually(beTrue())
+                }
+                
+            }
+
         }
         
         describe("using preResolved(_) and preRejected(_)") {
@@ -120,7 +154,7 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("flat-mapping") {
+        describe("mapping") {
             var future: Future<Int>!
             var mappedFuture: Future<String>!
             
@@ -132,7 +166,7 @@ class PromiseTests: QuickSpec {
             context("when the map block results in nil") {
                 beforeEach {
                     subject.resolve(3)
-                    mappedFuture = future.flatMap({ (intValue) -> (String?) in
+                    mappedFuture = future.map({ (intValue) -> (String?) in
                         return nil
                     })
                 }
@@ -148,7 +182,7 @@ class PromiseTests: QuickSpec {
             
             context("when the map block results in non-nil") {
                 beforeEach {
-                    mappedFuture = future.flatMap({ (intValue) -> (String?) in
+                    mappedFuture = future.map({ (intValue) -> (String?) in
                         return "\(intValue)"
                     })
                 }
@@ -186,4 +220,5 @@ class PromiseTests: QuickSpec {
     }
 
   }
+
 }
