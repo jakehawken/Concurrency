@@ -18,6 +18,7 @@ Though I did not consult their source code, my implementation of Promise/Future 
     * [Providing Futures](#providing-futures)
     * [Consuming Futures](#consuming-futures)
     * [Mapping](#mapping)
+    * [Pre-Resolved and Pre-Rejected Futures](#pre-resolved-and-pre-rejected-futures)
   * [`PeriodicFetcher<T>`](#periodic-fetcher)
 * [Requirements & Dependencies](#requirements-and-dependencies)
 * [Installation](#installation)
