@@ -232,7 +232,9 @@ _Say no more. I got you, fam._
 
 Future has a handy-dandy little instance method:
 
-`public func map<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q>`.
+```Swift
+public func map<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q>
+```
 
 This generates a new future of a type of your choice. When you call it, you pass in a mapping block. That block translates from the type of the original promise to the type of your new promise. And, when the original promise resolves or rejects, it will resolve or reject the mapped promise.
 
@@ -253,7 +255,21 @@ Now, take another look at the signature of the map block: `(T)->(Q?)`. Notice th
 
 #### Pre-resolved and Pre-Rejected futures
 
-[DESCRIPTION COMING SOON]
+There are two last convenience methods on Future I wanted to mention. They are
+
+```Swift
+func preResolved(value: T) -> Future<T>
+```
+and
+
+```Swift
+func preRejected(error: Error) -> Future<T>
+```
+
+These simply return a future that is already resolved or rejected, and they do so synchronously. There are two main uses for these methods:
+
+1) Testing. This collapses several lines of setup in a test down to one.
+2) In a method which returns a future, if arguments passed in (or some other aspect of state) are insufficient to do the asynchronous work, then this give you an option to immediately reject the future, and to do so without adding any needless concurrency into the app.
 
 ### Periodic Fetcher
 
