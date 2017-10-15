@@ -17,6 +17,7 @@ Though I did not consult their source code, my implementation of Promise/Future 
     * [The concept](#the-concept)
     * [Providing Futures](#providing-futures)
     * [Consuming Futures](#consuming-futures)
+    * [Mapping](#mapping)
   * [`PeriodicFetcher<T>`](#periodic-fetcher)
 * [Requirements & Dependencies](#requirements-and-dependencies)
 * [Installation](#installation)
@@ -109,9 +110,9 @@ You see, often, asynchronous work relies on other asynchronous work. In a world 
 
 ```Swift
 func getAStringWithTwoNumbersInIt(_ completionHandler:(Result<String>)->()) {
-  getString1 { result1 in
+  getInt1 { result1 in
     result1.onSuccess { int1 in
-      getString2 { result2 in
+      getInt2 { result2 in
         result1. onSuccess { int2 in
            completionHandler(.success("I got \(int1) and \(int2)! Yay!"))
         }
@@ -182,7 +183,7 @@ This is where it gets fun, boys and girls!
 
 `then(_:)` and `error(_:)`
 
-Calling these give the future its completion behavior. If somehow the call comes back before either of these are set, they'll simply be called as soon as they're set. Easy-peasy.
+Calling these give the future its completion behavior. If somehow the call comes back before either of these are set, the passed in blocks will simply be executed as soon as they're passed in. Easy-peasy.
 
 So, consuming the future is done like so:
 
@@ -207,7 +208,52 @@ goCallYourMother().then { (earful) in
 
 As you can see, much like the `onSuccess(_:)` and `onError(_:)` methods on [`Result`](#result), these return discardable references to the promise and can thus be chained and used together or independently of one another.
 
-[MORE TO COME]
+The real magic about Future is that `then(_:)` and `error(_:)` can be called as many times as needed, and each of the actions will execute in order. So, if you have a method which fetches a value and returns a promise, and there are multiple layers of the app that need to be updated with that value, you can pass that future along from method to method, tacking on success actions as you go.
+
+Yes, I know, an example is in order. So, let's say we have that same method from earlier: `func goCallYourMother() -> Future<AnEarful>`. We could propagate it along like so:
+
+```Swift
+func callYourMomAndThenReflect() -> Future<AnEarful> {
+  return goCallYourMother().then { (earful) in
+    self.hooBoyWhatAn(earful) // a local action that needs to happen
+  }.error { (error) in
+    self.wellAtLeastITried(error) //also a local action that needs to happen
+  }
+}
+```
+
+So we've called a method that gets a future, tacked on a `ThenBlock` and an `ErrorBlock` and then immediately returned that future to whoever consumed this method. The next consumer can do the same, and on and on, and as soon as the initial call completes, it will bubble up completions or errors, all the way up the chain, in order, to the last block(s) added.
+
+But, you ask, what if the values you need at the different layers of your application are of different types?
+
+_Say no more. I got you, fam._
+
+#### Mapping
+
+Future has a handy-dandy little instance method:
+
+`public func map<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q>`.
+
+This generates a new future of a type of your choice. When you call it, you pass in a mapping block. That block translates from the type of the original promise to the type of your new promise. And, when the original promise resolves or rejects, it will resolve or reject the mapped promise.
+
+Now, let's imagine that we have a future that goes and gets a phone number, but it gets it as an integer. Then imagine we want to fetch that, but we want it as a string. So if we've got that first method: `getPhoneNumber() -> Future<Int>`, then we can easily map it like so:
+
+```Swift
+func getPhoneNumberString() -> Future<String> {
+  return getPhoneNumber().map({ (intValue) -> (String?) in
+    return "\(intValue)"
+  })
+}
+```
+
+Now, take another look at the signature of the map block: `(T)->(Q?)`. Notice that the return type is optional. If this block returns nil, then the mapped future will fail with a mapping error, regardless of the fact that the parent promise succeeded. So in the end, there are three ways a mapped promise can finish:
+1) Its parent promise succeeds and the map succeeds, thus it succeeds.
+2) Its parent promise succeeds and the map fails, so it fails.
+3) Its parent promise fails and the mapped promise propagates the failure, so it fails.
+
+#### Pre-resolved and Pre-Rejected futures
+
+[DESCRIPTION COMING SOON]
 
 ### Periodic Fetcher
 
