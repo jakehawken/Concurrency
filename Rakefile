@@ -45,9 +45,9 @@ task :mergepush do
     system("git checkout develop && git pull && git merge - && git push && git branch -D #{branchName} && git push origin :#{branchName}")
 end
 
-desc 'Deletes all local branches except for develop'
+desc 'Deletes all local branches except for master'
 task :branches do
-    system("git checkout develop")
+    system("git checkout master")
     branches = `git branch`.split("\n  ").select do |branch|
         !branch.include? "master"
     end
@@ -59,22 +59,22 @@ task :branches do
             system("git branch -D #{branch}")
         end
 
-        puts("\nResults (should only show develop):")
+        puts("\nResults (should only show master):")
         system("git branch")
     end
 end
 
-desc 'Deletes all local branches except for develop, as well as their remotes'
+desc 'Deletes all local branches except for master, as well as their remotes'
 task :branches_and_remotes do
     fetch = `git fetch`
 
-    localBranches = `git branch`.split("\n").map! {|x| x.gsub(' ','')}.select {|x| !x.include? "develop"}
+    localBranches = `git branch`.split("\n").map! {|x| x.gsub(' ','').gsub('*', '')}.select {|x| !x.include? "master"}
 
     remoteBranches = 'git branch -r'.split("\n  ").select do |branch|
         !branch.include? "master" and !branch.include? "release"
     end
 
-    system("git checkout master")
+    hideThisMessage = `git checkout master`
 
     if localBranches.count == 0
         puts("No branches to delete.")
@@ -87,7 +87,7 @@ task :branches_and_remotes do
         end
     end
 
-    puts("\nResults (should only show develop):")
+    puts("\nResults (should only show master):")
     system("git branch")
 end
 
