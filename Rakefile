@@ -48,34 +48,52 @@ end
 desc 'Deletes all local branches except for develop'
 task :branches do
     system("git checkout develop")
-    branches = `git branch`.split("\n")
+    branches = `git branch`.split("\n  ").select do |branch|
+        !branch.include? "master"
+    end
 
-    puts("Branches to delete:\n#{branches}")
-
-    branches.each do |branch|
-        if !branch.include? "develop"
+    if branches.count == 0
+        puts("No feature branches to delete.")
+    else
+        branches.each do |branch|
             system("git branch -D #{branch}")
         end
+
+        puts("\nResults (should only show develop):")
+        system("git branch")
     end
+end
+
+desc 'Deletes all local branches except for develop, as well as their remotes'
+task :branches_and_remotes do
+    fetch = `git fetch`
+
+    localBranches = `git branch`.split("\n").map! {|x| x.gsub(' ','')}.select {|x| !x.include? "develop"}
+
+    remoteBranches = 'git branch -r'.split("\n  ").select do |branch|
+        !branch.include? "master" and !branch.include? "release"
+    end
+
+    system("git checkout master")
+
+    if localBranches.count == 0
+        puts("No branches to delete.")
+    else
+        localBranches.each do |branch|
+            system("git branch -D #{branch}")
+            if remoteBranches.include? branch
+                system("git push origin :#{branch}")
+            end
+        end
+    end
+
+    puts("\nResults (should only show develop):")
+    system("git branch")
 end
 
 desc 'Imposes the virtual file structure from Xcode onto the actual file structure on disk, and sorts the files within the Xcode groups alphabetically.'
 task :sort do
   system("synx #{WORKSPACE_NAME}.xcodeproj")
-end
-
-desc 'Deletes all local branches except for develop, as well as their remotes'
-task :branches_and_remotes do
-    system("git checkout develop")
-    branches = `git branch`.split("\n")
-
-    puts("Branches to delete:\n#{branches}")
-
-    branches.each do |branch|
-        deleteLocalAndRemote branch
-    end
-
-    puts("All branches and corresponding remotes for #{WORKSPACE_NAME} deleted.")
 end
 
 def deleteLocalAndRemote(branchName)
