@@ -16,6 +16,14 @@ func item<T>(_ item: Any?, isA: T.Type, and evalBlock:(T)->(Bool)) -> Bool {
 }
 
 
+extension Error {
+    func equals(_ nsError: NSError) -> Bool {
+        let selfAsNSError = self as NSError
+        return selfAsNSError == nsError
+    }
+}
+
+
 extension Date {
     func isAfter(_ otherDate: Date?) -> Bool {
         guard let otherDate = otherDate else {
