@@ -151,3 +151,43 @@ extension Future {
     }
     
 }
+
+extension Future {
+
+    public class func joining(_ futures:[Future<T>]) -> Future<[T]> {
+        return JoinedFuture(futures).future
+    }
+
+}
+
+fileprivate class JoinedFuture<T> {
+    
+    let future = Future<[T]>()
+    
+    private var successValues = [T]()
+    
+    let lockQueue = DispatchQueue(label: "com.concurrency.joinedfuture.\(NSUUID().uuidString)")
+    
+    init(_ futures: [Future<T>]) {
+        let totalCount = futures.count
+        
+        futures.forEach { (future) in
+            future.then { (value) in
+                self.lockQueue.sync {
+                    if !self.future.isComplete {
+                        self.successValues.append(value)
+                        if self.successValues.count == totalCount {
+                            self.future.resolve(self.successValues)
+                        }
+                    }
+                }
+            }.error { (error) in
+                self.lockQueue.sync {
+                    self.future.reject(error)
+                }
+            }
+        }
+    }
+    
+}
+
