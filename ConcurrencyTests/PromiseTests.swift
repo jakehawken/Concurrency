@@ -216,6 +216,75 @@ class PromiseTests: QuickSpec {
                 }
             }
         }
+        
+        describe("joining futures") {
+            var future: Future<[Int]>!
+            let genericError = NSError(domain: "Oops!", code: 0, userInfo: nil)
+            let otherError = NSError(domain: "Uh-oh!", code: 1, userInfo: nil)
+            var successValues: [Int]?
+            var errorFromFuture: Error?
+            
+            beforeEach {
+                successValues = nil
+                errorFromFuture = nil
+            }
+            
+            context("when all of the values succeed") {
+                beforeEach {
+                    let intFutures: [Future<Int>] = [Future.preResolved(value: 5),
+                                                  Future.preResolved(value: 3),
+                                                  Future.preResolved(value: 7)]
+                    future = Future.joining(intFutures).then({ (values) in
+                        successValues = values
+                    }).error({ (error) in
+                        errorFromFuture = error
+                    })
+                }
+                
+                it("should resolve the future with an array of the success values") {
+                    expect(successValues).toEventually(contain([5,3,7]))
+                    expect(future.succeeded).toEventually(beTrue())
+                }
+            }
+            
+            context("when all of the values fail") {
+                beforeEach {
+                    let intFutures: [Future<Int>] = [Future.preRejected(error: otherError),
+                                                     Future.preRejected(error: genericError),
+                                                     Future.preRejected(error: genericError)]
+                    future = Future.joining(intFutures).then({ (values) in
+                        successValues = values
+                    }).error({ (error) in
+                        errorFromFuture = error
+                    })
+                }
+                
+                it("should reject the future with the first error encountered") {
+                    expect(successValues).toEventually(beNil())
+                    expect(errorFromFuture?.equals(otherError)).toEventually(beTrue())
+                    expect(future.failed).toEventually(beTrue())
+                }
+            }
+            
+            context("when one or more of the values fail") {
+                beforeEach {
+                    let intFutures: [Future<Int>] = [Future.preResolved(value: 5),
+                                                     Future.preRejected(error: genericError),
+                                                     Future.preResolved(value: 7)]
+                    future = Future.joining(intFutures).then({ (values) in
+                        successValues = values
+                    }).error({ (error) in
+                        errorFromFuture = error
+                    })
+                }
+                
+                it("should resolve the future with an array of the success values") {
+                    expect(successValues).toEventually(beNil())
+                    expect(errorFromFuture?.equals(genericError)).toEventually(beTrue())
+                    expect(future.failed).toEventually(beTrue())
+                }
+            }
+        }
 
     }
 
