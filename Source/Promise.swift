@@ -28,13 +28,37 @@ class Future<T> {
     private var errorBlock: ErrorBlock?
     private var finallyBlock: (()->())?
     private var childFuture: Future?
-
-    let lockQueue = DispatchQueue(label: "com.concurrency.future.\(NSUUID().uuidString)")
+    fileprivate var result: Result<T>?
+    
+    private let lockQueue = DispatchQueue(label: "com.concurrency.future.\(NSUUID().uuidString)")
 
     //MARK: - PUBLIC -
     
-    fileprivate(set) var value: T?
-    fileprivate(set) var error: Error?
+    //MARK: public properties
+    
+    var value: T? {
+        guard let result = result else {
+            return nil
+        }
+        switch result {
+        case .success(let val):
+            return val
+        default:
+            return nil
+        }
+    }
+    
+    var error: Error? {
+        guard let result = result else {
+            return nil
+        }
+        switch result {
+        case .error(let err):
+            return err
+        default:
+            return nil
+        }
+    }
     
     public var succeeded: Bool {
         return value != nil
@@ -47,6 +71,8 @@ class Future<T> {
     public var isComplete: Bool {
         return succeeded || failed
     }
+    
+    //MARK: - Public methods
 
     @discardableResult public func then(_ callback: @escaping ThenBlock) -> Future<T> {
         if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
@@ -91,7 +117,7 @@ class Future<T> {
             return
         }
         
-        self.value = val
+        self.result = .success(val)
         
         lockQueue.sync {
             self.thenBlock?(val)
@@ -109,7 +135,7 @@ class Future<T> {
             return
         }
         
-        self.error = err
+        self.result = .error(err)
         
         lockQueue.sync {
             self.errorBlock?(err)
@@ -138,13 +164,13 @@ extension Future {
     
     public static func preResolved(value: T) -> Future<T> {
         let future = Future<T>()
-        future.value = value
+        future.result = .success(value)
         return future
     }
     
     public static func preRejected(error: Error) -> Future<T> {
         let future = Future<T>()
-        future.error = error
+        future.result = .error(error)
         return future
     }
     
