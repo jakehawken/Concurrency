@@ -22,6 +22,27 @@ enum StreamState<T:Equatable>: Equatable {
             return false
         }
     }
+    
+    @discardableResult public func onError(_ errorBlock: (Error)->()) -> StreamState<T> {
+        switch self {
+        case .error(let error):
+            errorBlock(error)
+        default:
+            break
+        }
+        return self
+    }
+    
+    @discardableResult public func onNew(_ successBlock: (T)->()) -> StreamState<T> {
+        switch self {
+        case .newData(let val):
+            successBlock(val)
+        default:
+            break
+        }
+        return self
+    }
+    
 }
 
 class PeriodicFetcher<T:Equatable> {
