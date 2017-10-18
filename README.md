@@ -17,8 +17,10 @@ Though I did not consult their source code, my implementation of Promise/Future 
     * [The concept](#the-concept)
     * [Providing Futures](#providing-futures)
     * [Consuming Futures](#consuming-futures)
-    * [Mapping](#mapping)
-    * [Pre-Resolved and Pre-Rejected Futures](#pre-resolved-and-pre-rejected-futures)
+    * [Extras](#extras)
+      * [Mapping](#mapping)
+      * [Pre-Resolved and Pre-Rejected Futures](#pre-resolved-and-pre-rejected-futures)
+      * [Joined Futures](#joined-futures)
   * [`PeriodicFetcher<T>`](#periodic-fetcher)
 * [Requirements & Dependencies](#requirements-and-dependencies)
 * [Installation](#installation)
@@ -231,7 +233,9 @@ But, you ask, what if the values you need at the different layers of your applic
 
 _Say no more. I got you, fam._
 
-#### Mapping
+#### Extras
+
+##### Mapping
 
 Future has a handy-dandy little instance method:
 
@@ -256,7 +260,7 @@ Now, take another look at the signature of the map block: `(T)->(Q?)`. Notice th
 2) Its parent promise succeeds and the map fails, so it fails.
 3) Its parent promise fails and the mapped promise propagates the failure, so it fails.
 
-#### Pre-resolved and Pre-Rejected futures
+##### Pre-resolved and Pre-Rejected futures
 
 There are two last convenience methods on Future I wanted to mention. They are
 
@@ -273,6 +277,28 @@ These simply return a future that is already resolved or rejected, and they do s
 
 1) Testing. This collapses several lines of setup in a test down to one.
 2) In a method which returns a future, if arguments passed in (or some other aspect of state) are insufficient to do the asynchronous work, then this give you an option to immediately reject the future, and to do so without adding any needless concurrency into the app.
+
+##### Joined Futures
+
+You may find yourself (perhaps often) in a situation where you may want to wait for several pieces of work to complete before performing an action. The method `class func joining(_ futures:[Future<T>]) -> Future<[T]> ` takes in an array of futures of type `T` and returns a future with type `[T]`. This future will resolve once all futures in the array have succeeded, or will be rejected if any one of them failed.
+
+Say, for example, you want to fetch several phone numbers, and you can't do anything with them until you have all of them (totally real-world example, _amirite?_). So, you have several methods that return `Future<Int>`, and you want to perform an action once they all come back. You can do this:
+
+```Swift
+let momsNumberFuture: Future<Int> = getMomsNumber()
+let dadsNumberFuture: Future<Int> = getDadsNumber()
+let wackyNumberFuture: Future<Int> = getWackyPhoneNumber()
+
+let phoneNumberFutures: [Future<Int>] = [momsNumberFuture, dadsNumberFuture, wackyNumberFuture]
+
+let joinedFuture: Future<[Int]> = Future.joining(phoneNumberFutures)
+
+joinedFuture.then { [weak self] (intValues) in
+  self?.commenceZanyParentTrap(intValues)
+}
+```
+
+_Voila!_
 
 ### Periodic Fetcher
 
@@ -316,7 +342,13 @@ The one difference from most Rx is that, as you see above, I've passed in `nil` 
 
 ## Conclusion
 
-And that's about it! I have a bunch of ideas, tweaks, and optimizations in my head that I want to implement, and they'll come with time. Keep your eye out for version updates!
+And that's about it! I hope you find all of this useful, or at least informative.
+
+I'm always tweaking code, finding optimizations, and thinking about new features. Feel free to [reach out](https://twitter.com/geeksthenewcool) with questions and suggestions of your own!
+
+All files are tested. Feel free to check out the tests [here](https://github.com/jakehawken/Concurrency/tree/master/ConcurrencyTests).
+
+And of course, keep your eye out for version updates!
 
 ## Requirements and Dependencies
 
