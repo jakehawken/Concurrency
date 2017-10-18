@@ -209,6 +209,8 @@ goCallYourMother().then { (earful) in
 
 As you can see, much like the `onSuccess(_:)` and `onError(_:)` methods on [`Result`](#result), these return discardable references to the promise and can thus be chained and used together or independently of one another.
 
+__Side note:__ There's also a handy `finally(_:)` method as well, which will add a block to be executed after completion, regardless of success or failure. It executes after the given success or failure block.
+
 The real magic about Future is that `then(_:)` and `error(_:)` can be called as many times as needed, and each of the actions will execute in order. So, if you have a method which fetches a value and returns a promise, and there are multiple layers of the app that need to be updated with that value, you can pass that future along from method to method, tacking on success actions as you go.
 
 Yes, I know, an example is in order. So, let's say we have that same method from earlier: `func goCallYourMother() -> Future<AnEarful>`. We could propagate it along like so:
