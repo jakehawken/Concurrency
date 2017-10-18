@@ -47,14 +47,16 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("using then() add error() blocks") {
+        describe("using then(), error(), and finally() blocks") {
             var successValue: Int?
             var errorValue: NSError?
             var primaryTimestamp: Date?
+            var finallyHappened: Bool = false
             
             beforeEach {
                 successValue = nil
                 errorValue = nil
+                finallyHappened = false
                 
                 subject = Promise<Int>()
                 
@@ -63,7 +65,9 @@ class PromiseTests: QuickSpec {
                     successValue = value
                 }).error({ (error) in
                   errorValue = error as NSError
-                })
+                }).finally {
+                    finallyHappened = true
+                }
             }
             
             context("when the promise is rejected") {
@@ -76,6 +80,10 @@ class PromiseTests: QuickSpec {
                     expect(errorValue).toEventually(equal(noBuenoError))
                     expect(successValue).toEventually(beNil())
                 }
+                
+                it("should call the finally block no matter what") {
+                    expect(finallyHappened).toEventually(beTrue())
+                }
             }
             
             context("when the promise is resolved") {
@@ -87,6 +95,10 @@ class PromiseTests: QuickSpec {
                     expect(errorValue).toEventually(beNil())
                     expect(successValue).toNotEventually(beNil())
                     expect(successValue).toEventually(equal(3))
+                }
+                
+                it("should call the finally block no matter what") {
+                    expect(finallyHappened).toEventually(beTrue())
                 }
             }
             

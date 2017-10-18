@@ -26,6 +26,7 @@ class Future<T> {
 
     private var thenBlock: ThenBlock?
     private var errorBlock: ErrorBlock?
+    private var finallyBlock: (()->())?
     private var childFuture: Future?
 
     private let operationQueue = OperationQueue()
@@ -72,6 +73,16 @@ class Future<T> {
         }
         return self
     }
+    
+    @discardableResult public func finally(_ callback: @escaping ()->()) -> Future<T> {
+        if self.value != nil {
+            callback()
+        }
+        else {
+            self.finallyBlock = callback
+        }
+        return self
+    }
 
     //MARK: - PRIVATE
 
@@ -88,6 +99,9 @@ class Future<T> {
         operationQueue.addOperation {
             self.childFuture?.resolve(val)
         }
+        operationQueue.addOperation {
+            self.finallyBlock?()
+        }
     }
 
     fileprivate func reject(_ err: Error) {
@@ -102,6 +116,9 @@ class Future<T> {
         }
         operationQueue.addOperation {
             self.childFuture?.reject(err)
+        }
+        operationQueue.addOperation {
+            self.finallyBlock?()
         }
     }
 
