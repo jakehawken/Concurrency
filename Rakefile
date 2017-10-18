@@ -66,15 +66,17 @@ end
 
 desc 'Deletes all local branches except for master, as well as their remotes'
 task :branches_and_remotes do
-    fetch = `git fetch`
+    hide = `git fetch`
+    hide = `git checkout master`
 
     localBranches = `git branch`.split("\n").map! {|x| x.gsub(' ','').gsub('*', '')}.select {|x| !x.include? "master"}
 
-    remoteBranches = 'git branch -r'.split("\n  ").select do |branch|
+    remoteBranches = `git branch -r`.split("\n").map! {|x| x.gsub(' ','').gsub('origin/', '')}.select do |branch|
         !branch.include? "master" and !branch.include? "release"
     end
 
-    hideThisMessage = `git checkout master`
+    puts("Local branches to delete: #{localBranches}")
+    puts("Remote branches to delete: #{localBranches & remoteBranches}")
 
     if localBranches.count == 0
         puts("No branches to delete.")
