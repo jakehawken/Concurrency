@@ -187,7 +187,7 @@ class PromiseTests: QuickSpec {
                     expect(mappedFuture.isComplete).toEventually(beTrue())
                     expect(mappedFuture.succeeded).toEventually(beFalse())
                     expect(mappedFuture.failed).toEventually(beTrue())
-                    expect(item(mappedFuture.error, isA: NSError.self, and: {$0.domain == "Could not map value (3) to type String."})).toEventually(beTrue())
+                    expect(item(mappedFuture.error, isA: NSError.self, and:{ $0.description == "Concurrency: Could not map value (3) to type String." })).toEventually(beTrue())
                     expect(mappedFuture.value).toEventually(beNil())
                 }
             }
