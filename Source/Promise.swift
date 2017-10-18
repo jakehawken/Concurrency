@@ -29,7 +29,7 @@ class Future<T> {
     private var finallyBlock: (()->())?
     private var childFuture: Future?
 
-    private let operationQueue = OperationQueue()
+    let lockQueue = DispatchQueue(label: "com.concurrency.future.\(NSUUID().uuidString)")
 
     //MARK: - PUBLIC -
     
@@ -93,13 +93,13 @@ class Future<T> {
         
         self.value = val
         
-        operationQueue.addOperation {
+        lockQueue.sync {
             self.thenBlock?(val)
         }
-        operationQueue.addOperation {
+        lockQueue.sync {
             self.childFuture?.resolve(val)
         }
-        operationQueue.addOperation {
+        lockQueue.sync {
             self.finallyBlock?()
         }
     }
@@ -111,13 +111,13 @@ class Future<T> {
         
         self.error = err
         
-        operationQueue.addOperation {
+        lockQueue.sync {
             self.errorBlock?(err)
         }
-        operationQueue.addOperation {
+        lockQueue.sync {
             self.childFuture?.reject(err)
         }
-        operationQueue.addOperation {
+        lockQueue.sync {
             self.finallyBlock?()
         }
     }
