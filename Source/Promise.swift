@@ -8,7 +8,7 @@ import Foundation
 
 public class Promise<T> {
 
-    let future = Future<T>()
+    public let future = Future<T>()
     
     public init() {}
 
