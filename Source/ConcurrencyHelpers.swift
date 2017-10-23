@@ -6,7 +6,7 @@
 import Foundation
 
 
-extension NSError {
+public extension NSError {
     static func cantMap<T,Q>(value:T, toType: Q.Type) -> NSError {
         return CantMapError(value: value, toType: toType)
     }

@@ -7,12 +7,12 @@ import Foundation
 import RxSwift
 
 
-enum StreamState<T:Equatable>: Equatable {
+public enum StreamState<T:Equatable>: Equatable {
     case noData
     case newData(T)
     case error(Error)
     
-    static func ==(lhs: StreamState, rhs: StreamState) -> Bool {
+    public static func ==(lhs: StreamState, rhs: StreamState) -> Bool {
         switch (lhs, rhs) {
         case (.newData(let data1), .newData(let data2)):
             return data1 == data2
@@ -45,10 +45,10 @@ enum StreamState<T:Equatable>: Equatable {
     
 }
 
-class PeriodicFetcher<T:Equatable> {
+public class PeriodicFetcher<T:Equatable> {
     
-    typealias FutureGenerator = ()->(Future<T>)
-    typealias TimeIntervalGenerator = ()->(Double)
+    public typealias FutureGenerator = ()->(Future<T>)
+    public typealias TimeIntervalGenerator = ()->(Double)
     
     //MARK: - PROPERTIES -
     //MARK: private
@@ -72,7 +72,7 @@ class PeriodicFetcher<T:Equatable> {
     
     //MARK: - public
     
-    internal var isFetching: Bool {
+    public var isFetching: Bool {
         if let timer = timer {
             return timer.isValid
         }
@@ -89,25 +89,25 @@ class PeriodicFetcher<T:Equatable> {
     
     //MARK: - PUBLIC METHODS
     
-    func observable() -> Observable<StreamState<T>> {
+    public func observable() -> Observable<StreamState<T>> {
         return variable.asObservable()
     }
     
-    internal func startPeriodicFetch() {
+    public func startPeriodicFetch() {
         shouldEmit = true
         if !isFetching || !timeIntervalIsCurrent {
             createTimerAndFire()
         }
     }
     
-    func stopPeriodicFetch() {
+    public func stopPeriodicFetch() {
         shouldEmit = false
         currentFuture = nil
         timer?.invalidate()
         timer = nil
     }
     
-    internal func fetchOnce() {
+    public func fetchOnce() {
         shouldEmit = true
         if isFetching {
             if timeIntervalIsCurrent {
@@ -162,7 +162,7 @@ class PeriodicFetcher<T:Equatable> {
     }
 }
 
-protocol PeriodicService {
+public protocol PeriodicService {
     associatedtype T: Equatable
     func observable() -> Observable<StreamState<T>>
     func startPeriodicFetch()

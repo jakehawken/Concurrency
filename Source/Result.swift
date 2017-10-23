@@ -6,10 +6,10 @@
 import Foundation
 
 
-enum Result<T> {
+public enum Result<T> {
     
-    typealias SuccessBlock = (T)->()
-    typealias ErrorBlock = (Error)->()
+    public typealias SuccessBlock = (T)->()
+    public typealias ErrorBlock = (Error)->()
     
     case success(T)
     case error(Error)
@@ -52,12 +52,12 @@ enum Result<T> {
         return self.map(mapBlock).simple()
     }
     
-    enum MapResult<Q>: Error, CustomStringConvertible {
+    public enum MapResult<Q>: Error, CustomStringConvertible {
         case success(Q)
         case originalError(Error)
         case mappingError(T)
         
-        var description: String {
+        public var description: String {
             switch self {
             case .success:
                 return "success"
@@ -68,7 +68,7 @@ enum Result<T> {
             }
         }
         
-        func simple() -> Result<Q> {
+        public func simple() -> Result<Q> {
             switch self {
             case .success(let value):
                 return .success(value)
