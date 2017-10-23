@@ -81,7 +81,7 @@ public class PeriodicFetcher<T:Equatable> {
     
     //MARK: initialization
     
-    init(futureGenerator: @escaping FutureGenerator,
+    public init(futureGenerator: @escaping FutureGenerator,
          timeInterval: @escaping TimeIntervalGenerator) {
         self.getFuture = futureGenerator
         self.getTimeInterval = timeInterval

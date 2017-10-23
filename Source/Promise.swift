@@ -9,6 +9,8 @@ import Foundation
 public class Promise<T> {
 
     let future = Future<T>()
+    
+    public init() {}
 
     func resolve(_ val: T) {
         future.resolve(val)
