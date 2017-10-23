@@ -6,7 +6,7 @@
 import Foundation
 
 
-class Promise<T> {
+public class Promise<T> {
 
     let future = Future<T>()
 
@@ -20,9 +20,9 @@ class Promise<T> {
 
 }
 
-class Future<T> {
-    typealias ThenBlock  = (T)->()
-    typealias ErrorBlock = (Error)->()
+public class Future<T> {
+    public typealias ThenBlock  = (T)->()
+    public typealias ErrorBlock = (Error)->()
 
     private var thenBlock: ThenBlock?
     private var errorBlock: ErrorBlock?
@@ -36,7 +36,7 @@ class Future<T> {
     
     //MARK: public properties
     
-    var value: T? {
+    public var value: T? {
         guard let result = result else {
             return nil
         }
@@ -48,7 +48,7 @@ class Future<T> {
         }
     }
     
-    var error: Error? {
+    public var error: Error? {
         guard let result = result else {
             return nil
         }
@@ -160,7 +160,7 @@ class Future<T> {
     }
 }
 
-extension Future {
+public extension Future {
     
     public static func preResolved(value: T) -> Future<T> {
         let future = Future<T>()
@@ -195,7 +195,7 @@ extension Future {
     
 }
 
-extension Future {
+public extension Future {
 
     public class func joining(_ futures:[Future<T>]) -> Future<[T]> {
         return JoinedFuture(futures).future
