@@ -12,11 +12,11 @@ public class Promise<T> {
     
     public init() {}
 
-    func resolve(_ val: T) {
+    public func resolve(_ val: T) {
         future.resolve(val)
     }
 
-    func reject(_ err: Error) {
+    public func reject(_ err: Error) {
         future.reject(err)
     }
 
