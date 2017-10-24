@@ -202,6 +202,23 @@ public extension Future {
     public class func joining(_ futures:[Future<T>]) -> Future<[T]> {
         return JoinedFuture(futures).future
     }
+    
+    public func thenFuture<Q>(_ futureBlock:@escaping (T)->(Future<Q>)) -> Future<Q> {
+        let promise = Promise<Q>()
+        
+        self.then { (firstValue) in
+            futureBlock(firstValue).then({ (secondValue) in
+                promise.resolve(secondValue)
+            }).error({ (secondError) in
+                promise.reject(secondError)
+            })
+        }
+        self.error { (firstError) in
+            promise.reject(firstError)
+        }
+        
+        return promise.future
+    }
 
 }
 
