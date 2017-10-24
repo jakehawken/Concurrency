@@ -297,6 +297,62 @@ class PromiseTests: QuickSpec {
                 }
             }
         }
+        
+        describe("triggering one future on the resolution of another") {
+            var returnedFuture: Future<String>!
+            var secondFutureShouldSucceed = true
+            var couldntGetStringError: NSError!
+            
+            beforeEach {
+                let intToStringFutureBlock: (Int)->(Future<String>) = { (intVal) in
+                    if (secondFutureShouldSucceed) {
+                        return Future.preResolved(value: "\(intVal)")
+                    }
+                    couldntGetStringError = NSError(domain: "No string.", code: 1, userInfo: nil)
+                    return Future.preRejected(error: couldntGetStringError)
+                }
+                returnedFuture = subject.future.thenFuture(intToStringFutureBlock)
+            }
+            
+            context("when the first future fails") {
+                var couldntGetIntError: NSError!
+                
+                beforeEach {
+                    couldntGetIntError = NSError(domain: "No int.", code: 0, userInfo: nil)
+                    subject.reject(couldntGetIntError)
+                }
+                
+                it("should reject the second future") {
+                    expect(returnedFuture.failed).to(beTrue())
+                    expect(returnedFuture.error?.equals(couldntGetIntError)).toEventually(beTrue())
+                }
+            }
+            
+            context("when the first future succeeds but the second doesnt") {
+                beforeEach {
+                    secondFutureShouldSucceed = false
+                    subject.resolve(3)
+                }
+                
+                it("should resolve the returned future") {
+                    expect(returnedFuture.failed).toEventually(beTrue())
+                    expect(returnedFuture.error?.equals(couldntGetStringError)).toEventually(beTrue())
+                }
+            }
+            
+            context("when the first future succeeds as does the second") {
+                beforeEach {
+                    secondFutureShouldSucceed = true
+                    subject.resolve(3)
+                }
+                
+                it("should resolve the returned future") {
+                    expect(returnedFuture.succeeded).toEventually(beTrue())
+                    expect(returnedFuture.error).to(beNil())
+                    expect(returnedFuture.value).to(equal("3"))
+                }
+            }
+        }
 
     }
 
