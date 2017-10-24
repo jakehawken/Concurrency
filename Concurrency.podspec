@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Concurrency'
-  s.version          = '1.0.4'
+  s.version          = '1.1.0'
   s.summary          = 'A small toolkit for handling concurrency in Swift.'
 
   s.description      = <<-DESC
