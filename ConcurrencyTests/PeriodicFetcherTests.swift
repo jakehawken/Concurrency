@@ -71,7 +71,7 @@ class PeriodicFetcherTests: QuickSpec {
             it("should begin in the non-fetching state") {
                 expect(subject.isFetching).to(equal(false))
                 expect(streamStates.count).to(equal(1))
-                expect(streamStates.first).to(equal(.noData))
+                expect(streamStates.first == .noData).to(beTrue())
             }
             
             describe("fetching once (without periodic fetching)") {
@@ -82,8 +82,8 @@ class PeriodicFetcherTests: QuickSpec {
                 
                 it("should only fetch once (plus initial .noData)") {
                     expect(streamStates.count).toEventually(equal(2))
-                    expect(streamStates.first).to(equal(StreamState.noData))
-                    expect(streamStates.last).to(equal(StreamState.newData(0)))
+                    expect(streamStates.first == .noData).to(beTrue())
+                    expect(streamStates.last == .newData(0)).to(beTrue())
                     expect(showsIsFetching).to(equal(false))
                 }
             }
@@ -128,7 +128,7 @@ class PeriodicFetcherTests: QuickSpec {
                     it("should stop emitting data after being told to stop fetching") {
                         expect(streamStates.count).toEventually(equal(1))
                         expect(streamStates.count).toNotEventually(equal(2))
-                        expect(streamStates.last).to(equal(StreamState.noData))
+                        expect(streamStates.last == .noData).to(beTrue())
                         expect(subject.isFetching).to(equal(false))
                     }
                 }
@@ -155,7 +155,7 @@ class PeriodicFetcherTests: QuickSpec {
                     it("should stop emitting data after being told to stop fetching") {
                         expect(streamStates.count).toEventually(equal(3))
                         expect(streamStates.count).toNotEventually(equal(4))
-                        expect(streamStates.last).toEventually(equal(StreamState.newData(2)))
+                        expect(streamStates.last == .newData(2)).toEventually(beTrue())
                         expect(subject.isFetching).toEventually(equal(false))
                     }
                 }

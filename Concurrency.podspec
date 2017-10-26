@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Concurrency'
-  s.version          = '1.1.0'
+  s.version          = '1.1.1'
   s.summary          = 'A small toolkit for handling concurrency in Swift.'
 
   s.description      = <<-DESC
@@ -17,7 +17,6 @@ Pod::Spec.new do |s|
 
   s.platform              = :ios, "10.0"
   s.ios.deployment_target = '10.0'
-  # s.compiler_flags = 'SWIFT_VERSION', '3.2'
 
   s.source_files = 'Source/*'
   s.dependency 'RxSwift' #, '~> 3.5'
