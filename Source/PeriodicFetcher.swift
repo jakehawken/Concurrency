@@ -7,21 +7,10 @@ import Foundation
 import RxSwift
 
 
-public enum StreamState<T:Equatable>: Equatable {
+public enum StreamState<T> {
     case noData
     case newData(T)
     case error(Error)
-    
-    public static func ==(lhs: StreamState, rhs: StreamState) -> Bool {
-        switch (lhs, rhs) {
-        case (.newData(let data1), .newData(let data2)):
-            return data1 == data2
-        case (.error(_), .error(_)), (.noData, .noData):
-            return true
-        default:
-            return false
-        }
-    }
     
     @discardableResult public func onError(_ errorBlock: (Error)->()) -> StreamState<T> {
         switch self {
@@ -45,7 +34,34 @@ public enum StreamState<T:Equatable>: Equatable {
     
 }
 
-public class PeriodicFetcher<T:Equatable> {
+public extension StreamState where T: Equatable {
+    public static func ==(lhs: StreamState, rhs: StreamState) -> Bool {
+        switch (lhs, rhs) {
+        case (.noData, .noData), (.error(_), .error(_)):
+            return true
+        case (.newData(let value1), .newData(let value2)):
+            return value1 == value2
+        default:
+            return false
+        }
+    }
+    
+    public static func ==(lhs: StreamState<T>?, rhs: StreamState<T>) -> Bool {
+        guard let lhs = lhs else {
+            return false
+        }
+        return lhs == rhs
+    }
+    
+    public static func ==(lhs: StreamState<T>, rhs: StreamState<T>?) -> Bool {
+        guard let rhs = rhs else {
+            return false
+        }
+        return lhs == rhs
+    }
+}
+
+public class PeriodicFetcher<T> {
     
     public typealias FutureGenerator = ()->(Future<T>)
     public typealias TimeIntervalGenerator = ()->(Double)
