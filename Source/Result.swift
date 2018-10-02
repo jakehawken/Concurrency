@@ -7,7 +7,6 @@ import Foundation
 
 
 public enum Result<T> {
-    
     public typealias SuccessBlock = (T)->()
     public typealias ErrorBlock = (Error)->()
     

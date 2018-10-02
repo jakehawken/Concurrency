@@ -13,7 +13,6 @@ public extension NSError {
 }
 
 fileprivate class CantMapError<Q,T>: NSError {
-    
     private var descriptionString: String
     
     init(value: T, toType: Q.Type) {
@@ -41,5 +40,4 @@ fileprivate class CantMapError<Q,T>: NSError {
     public static func ==(lhs: CantMapError, rhs: CantMapError) -> Bool {
         return lhs.description == rhs.description
     }
-    
 }
