@@ -60,12 +60,12 @@ class PromiseTests: QuickSpec {
                 
                 subject = Promise<Int>()
                 
-                subject.future.then({ (value) in
+                subject.future.then { (value) in
                     primaryTimestamp = Date()
                     successValue = value
-                }).error({ (error) in
+                }.error { (error) in
                   errorValue = error as NSError
-                }).finally {
+                }.finally {
                     finallyHappened = true
                 }
             }
@@ -109,15 +109,15 @@ class PromiseTests: QuickSpec {
                 var tertiaryTimeStamp: Date?
                 
                 beforeEach {
-                    subject.future.then({ (value) in
+                    subject.future.then { (value) in
                         secondaryTimeStamp = Date()
                         secondarySuccessValue = "\(value)"
-                    })
+                    }
                     
-                    subject.future.then({ (value) in
+                    subject.future.then { (value) in
                         tertiaryTimeStamp = Date()
                         tertiarySuccessValue = Float(value)
-                    })
+                    }
                     
                     subject.resolve(5)
                 }
@@ -178,9 +178,9 @@ class PromiseTests: QuickSpec {
             context("when the map block results in nil") {
                 beforeEach {
                     subject.resolve(3)
-                    mappedFuture = future.map({ (intValue) -> (String?) in
+                    mappedFuture = future.map { (intValue) -> (String?) in
                         return nil
-                    })
+                    }
                 }
                 
                 it("should return a promise that gets rejected") {
@@ -194,9 +194,9 @@ class PromiseTests: QuickSpec {
             
             context("when the map block results in non-nil") {
                 beforeEach {
-                    mappedFuture = future.map({ (intValue) -> (String?) in
+                    mappedFuture = future.map { (intValue) -> (String?) in
                         return "\(intValue)"
-                    })
+                    }
                 }
                 
                 context("if the initial future was a success") {
@@ -246,11 +246,11 @@ class PromiseTests: QuickSpec {
                     let intFutures: [Future<Int>] = [Future.preResolved(value: 5),
                                                   Future.preResolved(value: 3),
                                                   Future.preResolved(value: 7)]
-                    future = Future.joining(intFutures).then({ (values) in
+                    future = Future.joining(intFutures).then { (values) in
                         successValues = values
-                    }).error({ (error) in
+                    }.error { (error) in
                         errorFromFuture = error
-                    })
+                    }
                 }
                 
                 it("should resolve the future with an array of the success values") {
@@ -264,11 +264,11 @@ class PromiseTests: QuickSpec {
                     let intFutures: [Future<Int>] = [Future.preRejected(error: otherError),
                                                      Future.preRejected(error: genericError),
                                                      Future.preRejected(error: genericError)]
-                    future = Future.joining(intFutures).then({ (values) in
+                    future = Future.joining(intFutures).then { (values) in
                         successValues = values
-                    }).error({ (error) in
+                    }.error { (error) in
                         errorFromFuture = error
-                    })
+                    }
                 }
                 
                 it("should reject the future with the first error encountered") {
@@ -283,11 +283,11 @@ class PromiseTests: QuickSpec {
                     let intFutures: [Future<Int>] = [Future.preResolved(value: 5),
                                                      Future.preRejected(error: genericError),
                                                      Future.preResolved(value: 7)]
-                    future = Future.joining(intFutures).then({ (values) in
+                    future = Future.joining(intFutures).then { (values) in
                         successValues = values
-                    }).error({ (error) in
+                    }.error { (error) in
                         errorFromFuture = error
-                    })
+                    }
                 }
                 
                 it("should resolve the future with an array of the success values") {

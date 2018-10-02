@@ -7,7 +7,6 @@ import Foundation
 
 
 public class Promise<T> {
-
     public let future = Future<T>()
     
     public init() {}
@@ -19,7 +18,6 @@ public class Promise<T> {
     public func reject(_ err: Error) {
         future.reject(err)
     }
-
 }
 
 public class Future<T> {
@@ -163,7 +161,6 @@ public class Future<T> {
 }
 
 public extension Future {
-    
     public static func preResolved(value: T) -> Future<T> {
         let future = Future<T>()
         future.result = .success(value)
@@ -194,11 +191,9 @@ public extension Future {
         
         return promise.future
     }
-    
 }
 
 public extension Future {
-
     public class func joining(_ futures:[Future<T>]) -> Future<[T]> {
         return JoinedFuture(futures).future
     }
@@ -207,11 +202,11 @@ public extension Future {
         let promise = Promise<Q>()
         
         self.then { (firstValue) in
-            futureBlock(firstValue).then({ (secondValue) in
+            futureBlock(firstValue).then { (secondValue) in
                 promise.resolve(secondValue)
-            }).error({ (secondError) in
+            }.error { (secondError) in
                 promise.reject(secondError)
-            })
+            }
         }
         self.error { (firstError) in
             promise.reject(firstError)
@@ -219,11 +214,9 @@ public extension Future {
         
         return promise.future
     }
-
 }
 
 fileprivate class JoinedFuture<T> {
-    
     let future = Future<[T]>()
     
     private var successValues = [T]()
@@ -250,6 +243,5 @@ fileprivate class JoinedFuture<T> {
             }
         }
     }
-    
 }
 

@@ -18,12 +18,12 @@ class ResultTests: QuickSpec {
                     
                     beforeEach {
                         subject = .success(3)
-                        subject.onSuccess({ (value) in
+                        subject.onSuccess { (value) in
                             resultString = "Success: \(value)"
-                        })
-                        subject.onError({ (_) in
+                        }
+                        subject.onError { (_) in
                             resultString = "Oopsie!"
-                        })
+                        }
                     }
                     
                     it("should respond to the onSuccess block") {
@@ -36,12 +36,12 @@ class ResultTests: QuickSpec {
                     
                     beforeEach {
                         subject = .error(noBuenoError)
-                        subject.onSuccess({ (value) in
+                        subject.onSuccess { (value) in
                             resultString = "Success: \(value)"
-                        })
-                        subject.onError({ (_) in
+                        }
+                        subject.onError { (_) in
                             resultString = "Oopsie!"
-                        })
+                        }
                     }
                     
                     it("should respond to the onError block") {
