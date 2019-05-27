@@ -21,7 +21,6 @@ Though I did not consult their source code, my implementation of Promise/Future 
       * [Mapping](#mapping)
       * [Pre-Resolved and Pre-Rejected Futures](#pre-resolved-and-pre-rejected-futures)
       * [Joined Futures](#joined-futures)
-  * [`PeriodicFetcher<T>`](#periodic-fetcher)
 * [Requirements & Dependencies](#requirements-and-dependencies)
 * [Installation](#installation)
 * [Author](#author)
@@ -156,7 +155,7 @@ So, if you were writing a method that returns a promise solely for the purpose o
 ```Swift
 func goCallYourMother() -> Future<AnEarful> {
   let promise = Promise<AnEarful>()
-  
+
   callYourMotherWithCompletion { (earful, error) in
     if let earful = earful {
       promise.resolve(earful)
@@ -169,12 +168,12 @@ func goCallYourMother() -> Future<AnEarful> {
       promise.reject(noDataError)
     }
   }
-  
+
   return promise.future
 }
 ```
 
-The key features here are: 
+The key features here are:
 1) Synchronously, you create a Promise, and then you return the promise's Future.
 2) On completion of the asynchronous work, you either call the `resolve(_:)` method on the promise and pass in the success value, or the `reject(_:)` method and pass in an `Error`.
 
@@ -300,46 +299,6 @@ joinedFuture.then { [weak self] (intValues) in
 
 _Voila!_
 
-### Periodic Fetcher
-
-When I first finally started to understand [RxSwift](https://github.com/ReactiveX/RxSwift), I fell head over heels in love with it. I wanted everything in my code to be able to get streams of updates like that. However, a lot of calls in our apps are simple one-offs. You call them once, they execute once, and then they're done. And with many of those, it would be convenient if there were a way to get that data periodically, in a stream, just like you do in Rx.
-
-Introducing my friend, `PeriodicFetcher<T>`. Periodic Fetcher repeatedly, at a user-defined time interval, executes a one-off, promise-generating block and emits the callback data from an RxSwift `Observable`.
-
-The generic type of the Observable is a type called `StreamState<T>`. StreamState is similar to Result, in that it's an enum that has `.success(T)` and `.error(Error)` cases, but it also has a `.noData` case. This effectively captures all states in which the stream emitted by the Periodic Fetcher might find itself.
-
-Ok, time for an example. Let's say that you have a class called, say, `MyLife`, and it has a static method on it called `func howManyFriendsDoIHaveNOW() -> Future<Int>`. It's really important that you check this value regularly (you don't wanna be working from bad data!). Here's how our buddy the Periodic Fetcher steps in to help.
-
-```Swift
-let fetcher: PeriodicFetcher<Int> = PeriodicFetcher(futureGenerator: { () -> (Future<Int>) in
-  return MyLife.howManyFriendsDoIHaveNOW()
-}, timeInterval: { () -> (Double) in
-  return 3
-})
-```
-
-You've now created a Periodic Fetcher which is ready to grab a Future from the `howManyFriendsDoIHaveNOW()` method once every 3 seconds. Now, as soon as you call `startPeriodicFetch()`, if will immediately do it once, and then do it every 3 seconds ever after until told to stop (by using `stopPeriodicFetch()`).
-
-Also, if at any point you can't wait the rest of the current 3-second period for any update, you can always call `fetchOnce()`, which will fire off a promise immediately and then start the 3-second clock over.
-
-Consuming the Periodic Fetcher's observable is pretty standard Rx fare:
-
-```Swift
-let dBag = DisposeBag()
-subject.observable().subscribe(onNext: { (streamState) in
-  switch streamState {
-  case .success(let friendCount):
-    self.obsessOver(friendCount)
-  case .error(let error):
-    self.worryAbout(error)
-  case .noData:
-    self.existentialMeltdown()
-  }
-}, onError: nil, onCompleted: nil, onDisposed: nil).disposed(by: dBag)
-```
-
-The one difference from most Rx is that, as you see above, I've passed in `nil` for everything except the `onNext` block. This is because PeriodicFetcher will never call any of these. It will never officially complete, and it passes all errors through the onNext block in a StreamState enum.
-
 ## Conclusion
 
 And that's about it! I hope you find all of this useful, or at least informative.
@@ -349,12 +308,6 @@ I'm always tweaking code, finding optimizations, and thinking about new features
 All files are tested. Feel free to check out the tests [here](https://github.com/jakehawken/Concurrency/tree/master/ConcurrencyTests).
 
 And of course, keep your eye out for version updates!
-
-## Requirements and Dependencies
-
-`PeriodicFetcher` uses the [RxSwift](https://github.com/ReactiveX/RxSwift) library. This is included as a dependency and requires no extra setup other than running the 'pod install' command found below.
-
-The Rakefile in this repo makes use of the [Synx](https://github.com/venmo/synx) tool by Venmo as well as [XCPretty](https://github.com/supermarin/xcpretty). Running `rake setup` will install these dependencies.
 
 ## Installation
 
