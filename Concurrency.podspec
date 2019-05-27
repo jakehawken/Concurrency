@@ -15,9 +15,8 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/jakehawken/Concurrency.git', :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/geeksthenewcool'
 
-  s.platform              = :ios, "10.0"
-  s.ios.deployment_target = '10.0'
+  s.platform              = :ios, "11.0"
+  s.ios.deployment_target = '11.0'
 
   s.source_files = 'Source/*'
-  s.dependency 'RxSwift' #, '~> 3.5'
 end
