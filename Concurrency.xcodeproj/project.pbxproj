@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		160095871F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160095861F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift */; };
-		160095881F8AAD7B002B6CC7 /* PeriodicFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721B61F8AAAE5006D261B /* PeriodicFetcher.swift */; };
 		160095891F8AAD7D002B6CC7 /* Promise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721B41F8AAAE5006D261B /* Promise.swift */; };
 		1600958A1F8AAD7F002B6CC7 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E721B51F8AAAE5006D261B /* Result.swift */; };
 		1600958E1F8B2F16002B6CC7 /* PromiseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1600958D1F8B2F16002B6CC7 /* PromiseTests.swift */; };
@@ -35,7 +33,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		160095861F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodicFetcherTests.swift; sourceTree = "<group>"; };
 		1600958D1F8B2F16002B6CC7 /* PromiseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromiseTests.swift; sourceTree = "<group>"; };
 		160095911F8B3757002B6CC7 /* ResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultTests.swift; sourceTree = "<group>"; };
 		16E721901F8AA979006D261B /* Concurrency.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Concurrency.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,7 +46,6 @@
 		16E721AA1F8AA979006D261B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		16E721B41F8AAAE5006D261B /* Promise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Promise.swift; sourceTree = "<group>"; };
 		16E721B51F8AAAE5006D261B /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		16E721B61F8AAAE5006D261B /* PeriodicFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodicFetcher.swift; sourceTree = "<group>"; };
 		1A7D87F53ACA2BDE6F421D7D /* Pods-ConcurrencyTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ConcurrencyTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-ConcurrencyTests/Pods-ConcurrencyTests.release.xcconfig"; sourceTree = "<group>"; };
 		230576021F8DD631003B432B /* ConcurrencyHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConcurrencyHelpers.swift; sourceTree = "<group>"; };
 		2334C6E41F8EC13A00D04ED3 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
@@ -122,7 +118,6 @@
 			isa = PBXGroup;
 			children = (
 				16E721AA1F8AA979006D261B /* Info.plist */,
-				160095861F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift */,
 				1600958D1F8B2F16002B6CC7 /* PromiseTests.swift */,
 				160095911F8B3757002B6CC7 /* ResultTests.swift */,
 				2334C6E41F8EC13A00D04ED3 /* TestHelpers.swift */,
@@ -134,7 +129,6 @@
 			isa = PBXGroup;
 			children = (
 				230576021F8DD631003B432B /* ConcurrencyHelpers.swift */,
-				16E721B61F8AAAE5006D261B /* PeriodicFetcher.swift */,
 				16E721B41F8AAAE5006D261B /* Promise.swift */,
 				16E721B51F8AAAE5006D261B /* Result.swift */,
 			);
@@ -172,8 +166,6 @@
 				16E7218C1F8AA979006D261B /* Sources */,
 				16E7218D1F8AA979006D261B /* Frameworks */,
 				16E7218E1F8AA979006D261B /* Resources */,
-				8636CC1308D9A63645AB9BB6 /* [CP] Embed Pods Frameworks */,
-				D24DDB5E7D00AFB9FC3E2B15 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -192,8 +184,7 @@
 				16E721A01F8AA979006D261B /* Sources */,
 				16E721A11F8AA979006D261B /* Frameworks */,
 				16E721A21F8AA979006D261B /* Resources */,
-				21FA8503F404A0E3C2E1E435 /* [CP] Embed Pods Frameworks */,
-				6F91B346A947A993EACCA6AC /* [CP] Copy Pods Resources */,
+				81E28759C63F6E380CB9A837 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -217,12 +208,12 @@
 				TargetAttributes = {
 					16E7218F1F8AA979006D261B = {
 						CreatedOnToolsVersion = 9.0;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1010;
 						ProvisioningStyle = Automatic;
 					};
 					16E721A31F8AA979006D261B = {
 						CreatedOnToolsVersion = 9.0;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1010;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 16E7218F1F8AA979006D261B;
 					};
@@ -268,74 +259,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		21FA8503F404A0E3C2E1E435 /* [CP] Embed Pods Frameworks */ = {
+		81E28759C63F6E380CB9A837 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
+			inputFileListPaths = (
+			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-ConcurrencyTests/Pods-ConcurrencyTests-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-ConcurrencyTests/Pods-ConcurrencyTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Nimble/Nimble.framework",
 				"${BUILT_PRODUCTS_DIR}/Quick/Quick.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+			);
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Nimble.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Quick.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ConcurrencyTests/Pods-ConcurrencyTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		6F91B346A947A993EACCA6AC /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ConcurrencyTests/Pods-ConcurrencyTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		8636CC1308D9A63645AB9BB6 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Concurrency/Pods-Concurrency-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Concurrency/Pods-Concurrency-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D24DDB5E7D00AFB9FC3E2B15 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Concurrency/Pods-Concurrency-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ConcurrencyTests/Pods-ConcurrencyTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DD1C6AB9A781168C5BDF2CC9 /* [CP] Check Pods Manifest.lock */ = {
@@ -381,7 +326,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				160095881F8AAD7B002B6CC7 /* PeriodicFetcher.swift in Sources */,
 				230576031F8DD631003B432B /* ConcurrencyHelpers.swift in Sources */,
 				1600958A1F8AAD7F002B6CC7 /* Result.swift in Sources */,
 				16E721961F8AA979006D261B /* ViewController.swift in Sources */,
@@ -396,7 +340,6 @@
 			files = (
 				160095921F8B3757002B6CC7 /* ResultTests.swift in Sources */,
 				2334C6E51F8EC13A00D04ED3 /* TestHelpers.swift in Sources */,
-				160095871F8AAD3F002B6CC7 /* PeriodicFetcherTests.swift in Sources */,
 				1600958E1F8B2F16002B6CC7 /* PromiseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -489,7 +432,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -541,7 +484,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -559,7 +502,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.JakeHawken.Concurrency;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -577,7 +521,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.JakeHawken.Concurrency;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -595,7 +540,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.JakeHawken.ConcurrencyTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Concurrency.app/Concurrency";
 			};
@@ -614,7 +560,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.JakeHawken.ConcurrencyTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Concurrency.app/Concurrency";
 			};
