@@ -5,8 +5,7 @@
 
 import Foundation
 
-
-func item<T>(_ item: Any?, isA: T.Type, and evalBlock:(T)->(Bool)) -> Bool {
+func item<T>(_ item: Any?, isA: T.Type, and evalBlock: (T) -> (Bool)) -> Bool {
     if let unwrapped = item as? T {
         return evalBlock(unwrapped)
     }
@@ -15,14 +14,12 @@ func item<T>(_ item: Any?, isA: T.Type, and evalBlock:(T)->(Bool)) -> Bool {
     }
 }
 
-
 extension Error {
     func equals(_ nsError: NSError) -> Bool {
         let selfAsNSError = self as NSError
         return selfAsNSError == nsError
     }
 }
-
 
 extension Date {
     func isAfter(_ otherDate: Date?) -> Bool {

@@ -1,9 +1,10 @@
+@testable import Concurrency
 import Nimble
 import Quick
-@testable import Concurrency
 
-
+// swiftlint:disable:next type_body_length
 class PromiseTests: QuickSpec {
+  // swiftlint:disable:next function_body_length
   override func spec() {
 
     var subject: Promise<Int>!
@@ -139,7 +140,7 @@ class PromiseTests: QuickSpec {
 
             context("when using preResolved") {
                 beforeEach {
-                    future = Future.preResolved(value:7)
+                    future = Future.preResolved(value: 7)
                 }
 
                 it("should return a synchronously rejected future") {
@@ -153,7 +154,7 @@ class PromiseTests: QuickSpec {
 
             context("when using preRejected") {
                 beforeEach {
-                    future = Future.preRejected(error:noBuenoError)
+                    future = Future.preRejected(error: noBuenoError)
                 }
 
                 it("should return a synchronously rejected future") {
@@ -178,7 +179,7 @@ class PromiseTests: QuickSpec {
             context("when the map block results in nil") {
                 beforeEach {
                     subject.resolve(3)
-                    mappedFuture = future.map { (intValue) -> (String?) in
+                    mappedFuture = future.map { (_) -> (String?) in
                         return nil
                     }
                 }
@@ -187,7 +188,10 @@ class PromiseTests: QuickSpec {
                     expect(mappedFuture.isComplete).toEventually(beTrue())
                     expect(mappedFuture.succeeded).toEventually(beFalse())
                     expect(mappedFuture.failed).toEventually(beTrue())
-                    expect(item(mappedFuture.error, isA: NSError.self, and:{ $0.description == "Concurrency: Could not map value (3) to type String." })).toEventually(beTrue())
+                    let errorIsExpected = item(mappedFuture.error, isA: NSError.self) {
+                        $0.description == "Concurrency: Could not map value (3) to type String."
+                    }
+                    expect(errorIsExpected).toEventually(beTrue())
                     expect(mappedFuture.value).toEventually(beNil())
                 }
             }
@@ -222,7 +226,10 @@ class PromiseTests: QuickSpec {
                         expect(mappedFuture.isComplete).toEventually(beTrue())
                         expect(mappedFuture.succeeded).toEventually(beFalse())
                         expect(mappedFuture.failed).toEventually(beTrue())
-                        expect(item(mappedFuture.error, isA: NSError.self, and: {$0 == noBuenoError})).toEventually(beTrue())
+                        let errorIsExpected = item(mappedFuture.error, isA: NSError.self) {
+                            $0 == noBuenoError
+                        }
+                        expect(errorIsExpected).toEventually(beTrue())
                         expect(mappedFuture.value).toEventually(beNil())
                     }
                 }
@@ -254,7 +261,7 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should resolve the future with an array of the success values") {
-                    expect(successValues).toEventually(contain([5,3,7]))
+                    expect(successValues).toEventually(contain([5, 3, 7]))
                     expect(future.succeeded).toEventually(beTrue())
                 }
             }
@@ -305,7 +312,7 @@ class PromiseTests: QuickSpec {
             
             beforeEach {
                 let intToStringFutureBlock: (Int)->(Future<String>) = { (intVal) in
-                    if (secondFutureShouldSucceed) {
+                    if secondFutureShouldSucceed {
                         return Future.preResolved(value: "\(intVal)")
                     }
                     couldntGetStringError = NSError(domain: "No string.", code: 1, userInfo: nil)

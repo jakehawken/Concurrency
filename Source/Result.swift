@@ -5,10 +5,9 @@
 
 import Foundation
 
-
 public enum Result<T> {
-    public typealias SuccessBlock = (T)->()
-    public typealias ErrorBlock = (Error)->()
+    public typealias SuccessBlock = (T) -> Void
+    public typealias ErrorBlock = (Error) -> Void
     
     case success(T)
     case error(Error)
@@ -33,7 +32,7 @@ public enum Result<T> {
         return self
     }
     
-    public func map<Q>(_ mapBlock: (T)->(Q?)) -> MapResult<Q> {
+    public func map<Q>(_ mapBlock: (T) -> (Q?)) -> MapResult<Q> {
         switch self {
         case .success(let value):
             if let transformedValue = mapBlock(value) {
@@ -47,7 +46,7 @@ public enum Result<T> {
         }
     }
     
-    public func mapSimple<Q>(_ mapBlock: (T)->(Q?)) -> Result<Q> {
+    public func mapSimple<Q>(_ mapBlock: (T) -> (Q?)) -> Result<Q> {
         return self.map(mapBlock).simple()
     }
     
