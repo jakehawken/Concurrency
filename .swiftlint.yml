@@ -1,0 +1,27 @@
+disabled_rules: # rules from the default set that we want turned off
+    - identifier_name
+    - legacy_hashing
+    - statement_position
+    - todo
+    - trailing_whitespace
+opt_in_rules:
+    - sorted_imports
+    - trailing_closure
+    - empty_count
+    - empty_string
+excluded: # paths to ignore during linting. Takes precedence over `included`.
+  - Pods
+
+# configurable rules can be customized from this configuration file
+# binary rules can set their severity level
+line_length: 145
+function_body_length:
+    warning: 50
+    error: 100
+type_name:
+  min_length: 3 # only warning
+  max_length: # warning and error
+    warning: 42
+    error: 50
+function_body_length:
+  excluded: ".*Test\\.swift"
