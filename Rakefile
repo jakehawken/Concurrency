@@ -1,7 +1,6 @@
 ### CONSTANTS --------------------------------------------------
 # local constants
 DERIVED_DATA_PATH = "~/Library/Developer/Xcode/DerivedData/"
-DESTINATION = "'platform=iOS Simulator,name=iPhone 7,OS=10.2'"
 PROJECT_NAME = File.dirname(__FILE__).split("/").last
 WORKSPACE_NAME = "Concurrency"
 # file manipulation constants
@@ -98,32 +97,53 @@ task :sort do
   system("synx #{WORKSPACE_NAME}.xcodeproj")
 end
 
-def deleteLocalAndRemote(branchName)
-    if !branchName.include? "develop"
-        system("git branch -D #{branch} && git push origin :#{branch}")
-    elsif
-        puts("Nope! Not gonna let you do that, buddy.")
-    end
-end
-
 desc "From a feature branch, grabs all of the newest changes from orign/develop and merges them in, then pushes to the feature branch's remote."
 task :pullrequest do
     system("git checkout develop && git pull && git checkout - && git merge develop && rake specs && git push")
 end
 
 task :constants do
-    print(" PROJECT_NAME: #{PROJECT_NAME} \n WORKSPACE_NAME: #{WORKSPACE_NAME} \n DESTINATION: #{DESTINATION} \n DERIVED_DATA_PATH: #{DERIVED_DATA_PATH} \n")
+    print(" PROJECT_NAME: #{PROJECT_NAME} \n WORKSPACE_NAME: #{WORKSPACE_NAME} \n DERIVED_DATA_PATH: #{DERIVED_DATA_PATH} \n")
+end
+
+task :test_config do
+    puts("TestTarget: #{testTargetName}, Test Destination: #{bestTestDestination}")
 end
 
 desc 'runs all of the specs for the project. (Runs rake nof first)'
 task :specs do
+    puts("Preparing tests...")
+    destination = bestTestDestination
+    puts("Prepared. Running tests...")
     system("rake nof && rake kill && xcodebuild \
     -workspace #{WORKSPACE_NAME}.xcworkspace \
-    -scheme #{WORKSPACE_NAME}Tests \
+    -scheme #{WORKSPACE_NAME} \
     -sdk iphonesimulator \
-    -destination #{DESTINATION} \
+    -destination #{destination} \
     -derivedDataPath #{DERIVED_DATA_PATH} \
     test | xcpretty -t & rake open")
+end
+
+desc 'runs all of the specs and then performs an analysis of the output'
+task :specs_analysis do
+    puts("Preparing for tests...")
+    testDestination = bestTestDestination
+
+    puts("Running tests...")
+    startTime = Time.now
+
+    specsOutput = `xcodebuild \
+    -workspace #{WORKSPACE_NAME}.xcworkspace \
+    -scheme #{WORKSPACE_NAME} \
+    -sdk iphonesimulator \
+    -destination #{testDestination} \
+    test | xcpretty -s`.split("\n")
+
+    endTime = Time.now
+    totalTestTime = endTime - startTime
+
+    performSpecsOutputAnalysis(specsOutput)
+    puts("Full testing time (building + running): #{totalTestTime.round(2)} seconds.")
 end
 
 desc 'runs all code cleanup commands (nof, imports, sort)'
@@ -133,7 +153,7 @@ end
 
 desc 'remove focus from all focused tests'
 task :nof do
-    testFiles = Dir.glob("#{WORKSPACE_NAME}Tests/**/*.swift")
+    testFiles = Dir.glob("#{testTargetName}/**/*.swift")
     puts("All the spec files: #{testFiles}")
     testFiles.each do |file|
         newRows = []
@@ -148,7 +168,7 @@ end
 
 desc 'remove bypass from all bypassed tests'
 task :nox do
-    testFiles = Dir.glob("#{WORKSPACE_NAME}Tests/**/*Tests.swift")
+    testFiles = Dir.glob("#{testTargetName}/**/*Tests.swift")
     testFiles.each do |file|
         newRows = []
         File.open(file, 'r').each do |line|
@@ -185,246 +205,155 @@ task :open do
     system("open #{WORKSPACE_NAME}.xcworkspace")
 end
 
-desc 'sorts all imports & removes duplicates, and standardizes tops of all .swift files'
-task :imports do
+# HELPERS -----------------------------------------------------------------------------------------------------------------------------
 
-    swiftFiles = Dir.glob("Source/*.swift") + Dir.glob("ConcurrencyTests/*.swift")
-
-    # # Debug - This is for debugging on a single file.
-    # # To use, comment out the .each loop above and uncomment the following,
-    # # then replace the file name on the `filename.include?` line as you see fit:
-    # swiftFiles = swiftFiles.select{ |filename|
-    #     filename.include? "ValidateNotificationButton"
-    # }
-
-    sortImportsAndPrintResultsForFiles swiftFiles
+def testTargetName
+    return "#{WORKSPACE_NAME}Tests"
 end
 
-desc 'runs the imports command on all files modified on the current git branch'
-task :imports_branch do
-    branchName = `git branch | grep "*"`.gsub('* ', '').split("\n").first
+def bestTestDestination
+    allDestinations = `xcodebuild \ -workspace #{WORKSPACE_NAME}.xcworkspace -scheme #{WORKSPACE_NAME} -sdk iphonesimulator -showdestinations`
+    allDestinations = allDestinations.split("Ineligible destinations").first.chomp.split("\n").select { |e| e.include? "{ platform:" }
+    last = allDestinations.last.chomp.split('{ ').last.gsub(' }', '')
+    relevantPairs = last.split(', ').select { |e| e.include? 'platform:' or e.include? 'name:' or e.include? 'OS:' }
+    return "'#{relevantPairs.join(',').gsub(':','=')}'"
+end
 
-    if branchName == "develop"
-        puts("On develop. No diff to consider.")
-        return
+def deleteLocalAndRemote(branchName)
+    if !branchName.include? "develop"
+        system("git branch -D #{branch} && git push origin :#{branch}")
+    elsif
+        puts("Nope! Not gonna let you do that, buddy.")
     end
+end
 
-    diffSwiffFiles = `git diff --name-status develop | grep swift`.split("\n")
-
-    modifiedSwiftFiles = []
-
-    diffSwiffFiles.each do |line|
-        if line.start_with?("M\t") or line.start_with?("A\t")
-            modifiedSwiftFiles << line.split("\t").last
+def performSpecsOutputAnalysis(specsOutput)
+    # FORMATTING THE INPUT DATA -------------------------------------------------------------
+    truncatedOutput = []
+    hasFoundTestStart = false
+    specsOutput.each do |line|
+        if hasFoundTestStart  # Only include console spew from after the tests began.
+            truncatedOutput << line.chomp
+        elsif line.include? "Test Suite" and line.include? "started"
+            hasFoundTestStart = true
         end
     end
-    puts("Checking all Swift files modified on branch: #{branchName}.")
-    sortImportsAndPrintResultsForFiles modifiedSwiftFiles
-end
+    specsOutput = truncatedOutput
 
-desc 'calls "handleImportsForFile" on an array of swift files and prints the results of all calls'
-def sortImportsAndPrintResultsForFiles(filesToModify)
-    # # Debug
-    # puts("Swift file(s) to scan:\n")
-    # if filesToModify.count == 0
-    #     puts ("NONE.")
-    #     return
-    # else
-    #     filesToModify.each do |fileName|
-    #         puts(fileName)
-    #     end
-    # end
+    totalTestsCount = specsOutput.select { |line| line.include? " seconds)" }.count
+    totalTestsDuration = 0.0
 
-    filesChanged = 0
-    filesNotChanged = 0
-    filesSkipped = 0
+    fileArrays = Hash.new
+    currentFileLines = []
+    currentFileDuration = 0.0
 
-    filesToModify.each do |filename|
-        returnValue = handleImportsForFile filename
-        if returnValue == FILE_CHANGED
-            print(".")
-            filesChanged = filesChanged + 1
-        elsif returnValue == NO_CHANGES
-            print("-")
-            filesNotChanged = filesNotChanged + 1
-        elsif returnValue == FILE_SKIPPED
-            print(">")
-            filesSkipped = filesSkipped + 1
-        end
-    end
+    # Breaking the testing output into files and getting the total duration (per file) of the tests
+    specsOutput.each_with_index do |line, index|
+        if !line.include? " seconds)" || index + 1 == specsOutput.count
+            if currentFileLines.count > 0
+                fileHeader = currentFileLines.first + " (Total file duration: #{currentFileDuration.round(3)})"
+                currentFileLines[0] = fileHeader
 
-    totalCount = filesToModify.count
-    puts("\nFinished scanning import lines in #{totalCount} swift files.")
-    puts("#{filesChanged} files modified (.), #{filesNotChanged} files unchanged (-), and #{filesSkipped} files had no imports to sort (>).")
-end
+                # Sorting tests within a file by length.
+                sortedTests = currentFileLines[1,currentFileLines.count].sort { |x,y|
+                    xSortable = x.split(" seconds)").first.split(" (").last.to_f
+                    ySortable = y.split(" seconds)").first.split(" (").last.to_f
+                    ySortable <=> xSortable
+                }
+                sortedTests.insert(0, fileHeader)
 
-def handleImportsForFile(filename)
-    className = filename.split("/").last.split(".").first
-
-    # # Debug
-    # puts("======>NEW FILE: #{filename.split("/").last} <=======================")
-    # puts("STRIPPED FILENAME == #{className}")
-
-    firstRead           = []
-    firstReadConsolidated = ""
-    boilerplateLines    = []
-    importLines         = []
-    flaggedImportLines  = []
-    bodyLines           = []
-
-    hasFoundImportBeginning = false
-    hasFoundBodyBeginning = false
-
-    lastLineType = BOILERPLATE_LINE
-    lastLine = ""
-
-    originalLines = File.open(filename, 'r')
-
-    originalLines.each_with_index do |line, index|
-        firstRead << line #writes every single line to the 'firstRead' array for final comparison at end
-        currentLineType = BOILERPLATE_LINE
-
-        # determining curent line type
-        if hasFoundBodyBeginning
-            currentLineType = BODY_LINE
-        elsif line == "\n" or line == "//\n" or line == " \n"
-            currentLineType = LINE_TO_DELETE
-            # # Debug
-            # puts("LINE MARKED FOR DELETION: #{[line]}")
-        elsif hasFoundImportBeginning
-            if line.start_with?("import ") or line.start_with?("@testable import ")
-                if lastLineType == FLAGGED_IMPORT_LINE and !lastLine.start_with?("#endif")
-                    currentLineType = FLAGGED_IMPORT_LINE
-                else
-                    currentLineType = IMPORT_LINE
-                end
-            elsif line.start_with?("#if") or line.start_with?("#else") or line.start_with?("#endif")
-                currentLineType = FLAGGED_IMPORT_LINE
-            else
-                currentLineType = BODY_LINE
-                hasFoundBodyBeginning = true
+                fileArrays[fileHeader] = sortedTests
+                currentFileLines = []
+                currentFileDuration = 0.0
             end
-        elsif line.start_with?("//")
-            currentLineType = BOILERPLATE_LINE
-        elsif line.start_with?("@testable import ") or line.start_with?("import ") or line.start_with?("#if")
-            hasFoundImportBeginning = true
-
-            if line.start_with?("#if")
-                currentLineType = FLAGGED_IMPORT_LINE
-            else
-                currentLineType = IMPORT_LINE
-            end
-        else
-            currentLineType = BODY_LINE
-            hasFoundBodyBeginning = true
+        elsif line.include? " seconds)"
+            currentTestDuration = line.split(" seconds)").first.split("(").last.to_f
+            totalTestsDuration += currentTestDuration
+            currentFileDuration += currentTestDuration
         end
-
-        #switching on current line type
-        if currentLineType == BOILERPLATE_LINE
-            boilerplateLines << line.gsub("#{WORKSPACE_NAME}_Example", "#{WORKSPACE_NAME}")
-        elsif currentLineType == IMPORT_LINE
-            importLines << line
-        elsif currentLineType == FLAGGED_IMPORT_LINE
-            flaggedImportLines << line
-        elsif currentLineType == BODY_LINE
-            # # Debug
-            # if lastLineType != BODY_LINE
-            #     puts("FIRST BODY LINE AT INDEX #{index}: #{[line]}")
-            #     puts("REASON:\n found body beginning: #{hasFoundBodyBeginning}\n found import beginning: #{hasFoundImportBeginning}\n last line was flagged import: #{line == FLAGGED_IMPORT_LINE}\n line is empty comment: #{line == "//\n"}\n line is empty line: #{line == "\n"}\n line is import: #{line.start_with?("@testable import ") or line.start_with?("import ") or line.start_with?("#if")}")
-            # end
-            bodyLines << line
-        else
-            # Since no work happens in this else case,
-            # lines that end up here will be deleted.
-            # # Debug
-            # puts("DELETING: #{[line]}")
-        end
-
-        lastLine = line
-        if currentLineType != LINE_TO_DELETE
-            lastLineType = currentLineType
-        end
+        currentFileLines << line
     end
+    totalTestsDuration = totalTestsDuration.round(3)
 
-    firstReadConsolidated = firstRead.join
-
-    if importLines.count + flaggedImportLines.count == 0
-        # # Debug
-        # puts("Less than 2 imports in file: #{filename.split("/").last}")
-        # puts("Boilerplate: #{boilerplateLines}")
-        # puts("Vanilla Imports: #{importLines}")
-        # puts("Flagged Imports: #{flaggedImportLines}")
-        return FILE_SKIPPED
-    end
-
-    #this sorts the import lines normally except that it puts the <> imports at the top.
-    importLines.sort! { |a,b|
-        if a.include? "<" and !b.include? "<"
-            -1
-        elsif !a.include? "<" and b.include? "<"
-            +1
-        elsif !a.start_with?("@") and b.start_with?("@")
-            -1
-        elsif a.start_with?("@") and !b.start_with?("@")
-            +1
-        else
-            a <=> b
-        end
+    # Sorting files by testing duration
+    sortedKeys = fileArrays.keys.sort { |x,y|
+        xSortable = x.split(" (Total file duration: ").last.split(")").first.to_f
+        ySortable = y.split(" (Total file duration: ").last.split(")").first.to_f
+        ySortable <=> xSortable
     }
+    specsOutput = sortedKeys.map { |key|
+        fileArrays[key]
+    }.flatten
 
-    importLines.uniq!
+    # ANALYSIS ------------------------------------------------------------------------------
+    puts("Analyzing test output")
 
-    # # Debug
-    # puts("Boilerplate Lines: \n#{boilerplateLines}\n")
-    # puts("\nImport Lines: \n")
-    # importLines.each do |line|
-    #     puts(line)
-    # end
-    # puts("\nBody Lines:\n")
-    # bodyLines.each do |line|
-    #     puts(line)
-    # end
+    minimumThreshold = 0.01
+    maxDisparity = 0.0
+    finalTestCountAboveThreshold = 0.0
+    finalDurationOfTestsAboveThreshold = 0.0
+    finalThreshold = 0.0
+    finalPercentageOfTotalTestCount = 0.0
+    finalPercentageOfTotalTestDuration = 0.0
+    relevantLines = []
 
-    #append flagged imports to imports
-    if flaggedImportLines.count > 0
-        if importLines.count > 0
-            importLines << "\n"
+    while minimumThreshold < 0.5
+        print(".")
+        lines = []
+        testCountAboveThreshold = 0
+        durationOfTestsAboveThreshold = 0.0
+
+        specsOutput.each do |line|
+            if line.include? " seconds)"
+                lengthOfTest = line.split(" seconds)").first.split("(").last.to_f
+                if lengthOfTest > minimumThreshold
+                    testCountAboveThreshold += 1
+                    durationOfTestsAboveThreshold += lengthOfTest
+                    lines << line
+                end
+            else
+                lines << line
+            end
         end
-        importLines = importLines + flaggedImportLines
-    end
 
-    newRows = []
+        durationOfTestsAboveThreshold = durationOfTestsAboveThreshold.round(3)
+        asPercentageOfTotalTestCount = ((testCountAboveThreshold.to_f/totalTestsCount.to_f)*100).round(3)
+        asPercentageOfTotalTestDuration = ((durationOfTestsAboveThreshold/totalTestsDuration)*100).round(3)
 
-    if boilerplateLines.count > 0
-        newRows << boilerplateLines
-    end
+        disparity = asPercentageOfTotalTestDuration-asPercentageOfTotalTestCount
+        if disparity > maxDisparity
+            maxDisparity = disparity
+            finalTestCountAboveThreshold = testCountAboveThreshold
+            finalThreshold = minimumThreshold
+            finalPercentageOfTotalTestCount = asPercentageOfTotalTestCount
+            finalPercentageOfTotalTestDuration = asPercentageOfTotalTestDuration
+            finalDurationOfTestsAboveThreshold = durationOfTestsAboveThreshold
 
-    if importLines.count > 0
-        if newRows.count > 0
-            newRows << "\n"
+            relevantLines = []
+            lines.each do |line|
+                if !line.include? " seconds)"
+                    if relevantLines.count > 0 and !relevantLines.last.include? " seconds)"
+                        relevantLines.pop
+                    end
+                    relevantLines << line
+                else
+                    relevantLines << line
+                end
+            end
+            if !relevantLines.last.include? " seconds)"
+                relevantLines.pop
+            end
         end
-        newRows << importLines
+        minimumThreshold += 0.01
     end
 
-    if bodyLines.count > 0
-        if newRows.count > 0
-            newRows << "\n\n"
-        end
-        newRows << bodyLines
-    end
-
-    newRowsConsolidated = newRows.join
-
-    # # Debug
-    # puts("FILE WAS CHANGED: #{firstReadConsolidated == newRowsConsolidated}")
-
-    #DETERMINING IF CHANGES WERE MADE
-    if firstReadConsolidated == newRowsConsolidated
-        return NO_CHANGES
+    print("DONE.\n")
+    relevantLines.each { |line| puts(line) }
+    if finalTestCountAboveThreshold > 0
+        puts("\nOut of #{totalTestsCount} tests, there were #{finalTestCountAboveThreshold} tests that each took more than #{finalThreshold.round(2)} seconds.")
+        puts("These tests make up #{finalPercentageOfTotalTestCount.round(2)}% of the total number of tests, but account for #{finalPercentageOfTotalTestDuration.round(3)}% of the duration of testing.")
+        puts("(#{finalDurationOfTestsAboveThreshold} out of #{totalTestsDuration} total seconds.)")
     else
-        #ACTUALLY WRITING BACK TO THE FILE
-        File.open(filename, 'w').write newRows.join
-        originalLines.close
-        return FILE_CHANGED
+        puts("Tests running at a consistent speed.")
     end
 end
