@@ -5,7 +5,6 @@
 
 import Foundation
 
-
 public class Promise<T> {
     public let future = Future<T>()
     
@@ -21,20 +20,20 @@ public class Promise<T> {
 }
 
 public class Future<T> {
-    public typealias ThenBlock  = (T)->()
-    public typealias ErrorBlock = (Error)->()
+    public typealias ThenBlock  = (T) -> Void
+    public typealias ErrorBlock = (Error) -> Void
 
     private var thenBlock: ThenBlock?
     private var errorBlock: ErrorBlock?
-    private var finallyBlock: (()->())?
+    private var finallyBlock: (() -> Void)?
     private var childFuture: Future?
     fileprivate var result: Result<T>?
     
     private let lockQueue = DispatchQueue(label: "com.concurrency.future.\(NSUUID().uuidString)")
 
-    //MARK: - PUBLIC -
+    // MARK: - PUBLIC -
     
-    //MARK: public properties
+    // MARK: public properties
     
     public var value: T? {
         guard let result = result else {
@@ -72,7 +71,7 @@ public class Future<T> {
         return succeeded || failed
     }
     
-    //MARK: - Public methods
+    // MARK: - Public methods
 
     @discardableResult public func then(_ callback: @escaping ThenBlock) -> Future<T> {
         if let value = self.value { //If the future has already been resolved with a value. Call the block immediately.
@@ -100,7 +99,7 @@ public class Future<T> {
         return self
     }
     
-    @discardableResult public func finally(_ callback: @escaping ()->()) -> Future<T> {
+    @discardableResult public func finally(_ callback: @escaping () -> Void) -> Future<T> {
         if self.value != nil {
             callback()
         }
@@ -110,7 +109,7 @@ public class Future<T> {
         return self
     }
 
-    //MARK: - PRIVATE
+    // MARK: - PRIVATE
 
     fileprivate func resolve(_ val: T) {
         if self.isComplete {
@@ -161,19 +160,19 @@ public class Future<T> {
 }
 
 public extension Future {
-    public static func preResolved(value: T) -> Future<T> {
+    static func preResolved(value: T) -> Future<T> {
         let future = Future<T>()
         future.result = .success(value)
         return future
     }
     
-    public static func preRejected(error: Error) -> Future<T> {
+    static func preRejected(error: Error) -> Future<T> {
         let future = Future<T>()
         future.result = .error(error)
         return future
     }
     
-    public func map<Q>(_ block:@escaping (T)->(Q?)) -> Future<Q> {
+    func map<Q>(_ block:@escaping (T) -> (Q?)) -> Future<Q> {
         let promise = Promise<Q>()
         
         then { (value) in
@@ -194,11 +193,11 @@ public extension Future {
 }
 
 public extension Future {
-    public class func joining(_ futures:[Future<T>]) -> Future<[T]> {
+    class func joining(_ futures: [Future<T>]) -> Future<[T]> {
         return JoinedFuture(futures).future
     }
     
-    public func thenFuture<Q>(_ futureBlock:@escaping (T)->(Future<Q>)) -> Future<Q> {
+    func thenFuture<Q>(_ futureBlock:@escaping (T)->(Future<Q>)) -> Future<Q> {
         let promise = Promise<Q>()
         
         self.then { (firstValue) in
@@ -216,7 +215,7 @@ public extension Future {
     }
 }
 
-fileprivate class JoinedFuture<T> {
+private class JoinedFuture<T> {
     let future = Future<[T]>()
     
     private var successValues = [T]()
@@ -244,4 +243,3 @@ fileprivate class JoinedFuture<T> {
         }
     }
 }
-

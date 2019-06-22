@@ -5,14 +5,13 @@
 
 import Foundation
 
-
 public extension NSError {
-    static func cantMap<T,Q>(value:T, toType: Q.Type) -> NSError {
+    static func cantMap<T, Q>(value: T, toType: Q.Type) -> NSError {
         return CantMapError(value: value, toType: toType)
     }
 }
 
-fileprivate class CantMapError<Q,T>: NSError {
+private class CantMapError<Q, T>: NSError {
     private var descriptionString: String
     
     init(value: T, toType: Q.Type) {
@@ -20,7 +19,7 @@ fileprivate class CantMapError<Q,T>: NSError {
         let description = "Concurrency: Could not map value (\(value)) to type \(typeString)."
         self.descriptionString = description
         
-        super.init(domain: "com.concurrency.map", code: 0, userInfo: ["description" : description])
+        super.init(domain: "com.concurrency.map", code: 0, userInfo: ["description": description])
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -37,7 +36,7 @@ fileprivate class CantMapError<Q,T>: NSError {
         return descriptionString
     }
     
-    public static func ==(lhs: CantMapError, rhs: CantMapError) -> Bool {
+    public static func == (lhs: CantMapError, rhs: CantMapError) -> Bool {
         return lhs.description == rhs.description
     }
 }

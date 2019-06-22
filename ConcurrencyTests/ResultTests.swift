@@ -1,7 +1,6 @@
+@testable import Concurrency
 import Nimble
 import Quick
-@testable import Concurrency
-
 
 class ResultTests: QuickSpec {
     override func spec() {
@@ -55,4 +54,3 @@ class ResultTests: QuickSpec {
         
     }
 }
-
