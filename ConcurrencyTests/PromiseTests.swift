@@ -29,9 +29,9 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should resolve the internal promise") {
-                    expect(subject.future.isComplete).toEventually(beTrue())
-                    expect(subject.future.succeeded).toEventually(beTrue())
-                    expect(subject.future.failed).toEventually(beFalse())
+                    expect(subject.future.isComplete).to(beTrue())
+                    expect(subject.future.succeeded).to(beTrue())
+                    expect(subject.future.failed).to(beFalse())
                 }
             }
             
@@ -41,9 +41,9 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should reject the internal promise") {
-                    expect(subject.future.isComplete).toEventually(beTrue())
-                    expect(subject.future.succeeded).toEventually(beFalse())
-                    expect(subject.future.failed).toEventually(beTrue())
+                    expect(subject.future.isComplete).to(beTrue())
+                    expect(subject.future.succeeded).to(beFalse())
+                    expect(subject.future.failed).to(beTrue())
                 }
             }
         }
@@ -78,12 +78,12 @@ class PromiseTests: QuickSpec {
                 
                 it("should hit the error block, and not the success block") {
                     expect(errorValue).toNotEventually(beNil())
-                    expect(errorValue).toEventually(equal(noBuenoError))
-                    expect(successValue).toEventually(beNil())
+                    expect(errorValue).to(equal(noBuenoError))
+                    expect(successValue).to(beNil())
                 }
                 
                 it("should call the finally block no matter what") {
-                    expect(finallyHappened).toEventually(beTrue())
+                    expect(finallyHappened).to(beTrue())
                 }
             }
             
@@ -93,13 +93,13 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should hit the error block, and not the success block") {
-                    expect(errorValue).toEventually(beNil())
+                    expect(errorValue).to(beNil())
                     expect(successValue).toNotEventually(beNil())
-                    expect(successValue).toEventually(equal(3))
+                    expect(successValue).to(equal(3))
                 }
                 
                 it("should call the finally block no matter what") {
-                    expect(finallyHappened).toEventually(beTrue())
+                    expect(finallyHappened).to(beTrue())
                 }
             }
             
@@ -124,11 +124,11 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should execute the then blocks in order") {
-                    expect(successValue).toEventually(equal(5))
-                    expect(secondarySuccessValue).toEventually(equal("5"))
-                    expect(secondaryTimeStamp?.isAfter(primaryTimestamp!)).toEventually(beTrue())
-                    expect(tertiarySuccessValue).toEventually(equal(5))
-                    expect(tertiaryTimeStamp?.isAfter(secondaryTimeStamp)).toEventually(beTrue())
+                    expect(successValue).to(equal(5))
+                    expect(secondarySuccessValue).to(equal("5"))
+                    expect(secondaryTimeStamp?.isAfter(primaryTimestamp!)).to(beTrue())
+                    expect(tertiarySuccessValue).to(equal(5))
+                    expect(tertiaryTimeStamp?.isAfter(secondaryTimeStamp)).to(beTrue())
                 }
                 
             }
@@ -171,7 +171,7 @@ class PromiseTests: QuickSpec {
             var returnedFuture: Future<String, NSError>!
             
             beforeEach {
-                returnedFuture = subject.future.map { (result) -> (Result<String, NSError>) in
+                returnedFuture = subject.future.mapResult { (result) -> (Result<String, NSError>) in
                     switch result {
                     case .success(let intVal):
                         return .success("\(intVal)")
@@ -191,7 +191,7 @@ class PromiseTests: QuickSpec {
                 
                 it("should reject the second future") {
                     expect(returnedFuture.failed).to(beTrue())
-                    expect(returnedFuture.error?.equals(couldntGetIntError)).toEventually(beTrue())
+                    expect(returnedFuture.error?.equals(couldntGetIntError)).to(beTrue())
                 }
             }
             
@@ -201,7 +201,7 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should resolve the returned future") {
-                    expect(returnedFuture.succeeded).toEventually(beTrue())
+                    expect(returnedFuture.succeeded).to(beTrue())
                     expect(returnedFuture.error).to(beNil())
                     expect(returnedFuture.value).to(equal("3"))
                 }
@@ -220,23 +220,23 @@ class PromiseTests: QuickSpec {
             context("when the map block results in nil") {
                 beforeEach {
                     subject.resolve(3)
-                    mappedFuture = future.autoMap { (_) -> (String?) in
+                    mappedFuture = future.flatMap { (_) -> (String?) in
                         return nil
                     }
                 }
                 
                 it("should return a promise that gets rejected") {
-                    expect(mappedFuture.isComplete).toEventually(beTrue())
-                    expect(mappedFuture.succeeded).toEventually(beFalse())
-                    expect(mappedFuture.failed).toEventually(beTrue())
-                    expect(mappedFuture.error?.description).toEventually(equal("Could not map value: (3) to output type: String."))
-                    expect(mappedFuture.value).toEventually(beNil())
+                    expect(mappedFuture.isComplete).to(beTrue())
+                    expect(mappedFuture.succeeded).to(beFalse())
+                    expect(mappedFuture.failed).to(beTrue())
+                    expect(mappedFuture.error?.description).to(equal("Could not map value: (3) to output type: String."))
+                    expect(mappedFuture.value).to(beNil())
                 }
             }
             
             context("when the map block results in non-nil") {
                 beforeEach {
-                    mappedFuture = future.autoMap { (intValue) -> (String?) in
+                    mappedFuture = future.flatMap { (intValue) -> (String?) in
                         return "\(intValue)"
                     }
                 }
@@ -247,11 +247,11 @@ class PromiseTests: QuickSpec {
                     }
                     
                     it("should return a promise that gets rejected") {
-                        expect(mappedFuture.isComplete).toEventually(beTrue())
-                        expect(mappedFuture.succeeded).toEventually(beTrue())
-                        expect(mappedFuture.failed).toEventually(beFalse())
-                        expect(mappedFuture.value).toEventually(equal("3"))
-                        expect(mappedFuture.error).toEventually(beNil())
+                        expect(mappedFuture.isComplete).to(beTrue())
+                        expect(mappedFuture.succeeded).to(beTrue())
+                        expect(mappedFuture.failed).to(beFalse())
+                        expect(mappedFuture.value).to(equal("3"))
+                        expect(mappedFuture.error).to(beNil())
                     }
                 }
                 
@@ -261,11 +261,11 @@ class PromiseTests: QuickSpec {
                     }
                     
                     it("should propagate the original error through") {
-                        expect(mappedFuture.isComplete).toEventually(beTrue())
-                        expect(mappedFuture.succeeded).toEventually(beFalse())
-                        expect(mappedFuture.failed).toEventually(beTrue())
-                        expect(mappedFuture.error).toEventually(equal(.originalError(noBuenoError)))
-                        expect(mappedFuture.value).toEventually(beNil())
+                        expect(mappedFuture.isComplete).to(beTrue())
+                        expect(mappedFuture.succeeded).to(beFalse())
+                        expect(mappedFuture.failed).to(beTrue())
+                        expect(mappedFuture.error).to(equal(.originalError(noBuenoError)))
+                        expect(mappedFuture.value).to(beNil())
                     }
                 }
             }
@@ -296,8 +296,8 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should resolve the future with an array of the success values") {
-                    expect(successValues).toEventually(contain([5, 3, 7]))
-                    expect(future.succeeded).toEventually(beTrue())
+                    expect(successValues).to(contain([5, 3, 7]))
+                    expect(future.succeeded).to(beTrue())
                 }
             }
             
@@ -314,9 +314,9 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should reject the future with the first error encountered") {
-                    expect(successValues).toEventually(beNil())
-                    expect(errorFromFuture?.equals(otherError)).toEventually(beTrue())
-                    expect(future.failed).toEventually(beTrue())
+                    expect(successValues).to(beNil())
+                    expect(errorFromFuture?.equals(otherError)).to(beTrue())
+                    expect(future.failed).to(beTrue())
                 }
             }
             
@@ -333,10 +333,16 @@ class PromiseTests: QuickSpec {
                 }
                 
                 it("should resolve the future with an array of the success values") {
-                    expect(successValues).toEventually(beNil())
-                    expect(errorFromFuture?.equals(genericError)).toEventually(beTrue())
-                    expect(future.failed).toEventually(beTrue())
+                    expect(successValues).to(beNil())
+                    expect(errorFromFuture?.equals(genericError)).to(beTrue())
+                    expect(future.failed).to(beTrue())
                 }
+            }
+        }
+        
+        describe("blocking") {
+            beforeEach {
+                <#code#>
             }
         }
 

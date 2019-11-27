@@ -17,6 +17,8 @@
 		16E7219E1F8AA979006D261B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 16E7219C1F8AA979006D261B /* LaunchScreen.storyboard */; };
 		230576031F8DD631003B432B /* ConcurrencyHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230576021F8DD631003B432B /* ConcurrencyHelpers.swift */; };
 		2334C6E51F8EC13A00D04ED3 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2334C6E41F8EC13A00D04ED3 /* TestHelpers.swift */; };
+		23FDFCF9238E64C100029FDF /* Promise+Mapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FDFCF8238E64C100029FDF /* Promise+Mapping.swift */; };
+		23FDFCFB238EE2BB00029FDF /* Promise+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FDFCFA238EE2BB00029FDF /* Promise+Sync.swift */; };
 		8F7653881C6E82347C7DAF8D /* Pods_ConcurrencyTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28F5CC9766F375DA1F62E11C /* Pods_ConcurrencyTests.framework */; };
 		9EFB3237510EE5AC2ABE7E76 /* Pods_Concurrency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 282F416B54AA0280D9FA4F3B /* Pods_Concurrency.framework */; };
 /* End PBXBuildFile section */
@@ -49,6 +51,8 @@
 		2334C6E41F8EC13A00D04ED3 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
 		23D59AD31F93D06F00527842 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		23D59AD41F93D07800527842 /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		23FDFCF8238E64C100029FDF /* Promise+Mapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Promise+Mapping.swift"; sourceTree = "<group>"; };
+		23FDFCFA238EE2BB00029FDF /* Promise+Sync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Promise+Sync.swift"; sourceTree = "<group>"; };
 		282F416B54AA0280D9FA4F3B /* Pods_Concurrency.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Concurrency.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		28F5CC9766F375DA1F62E11C /* Pods_ConcurrencyTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ConcurrencyTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FFE6160123D4BB305589228 /* Pods-Concurrency.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Concurrency.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Concurrency/Pods-Concurrency.debug.xcconfig"; sourceTree = "<group>"; };
@@ -127,6 +131,8 @@
 			children = (
 				230576021F8DD631003B432B /* ConcurrencyHelpers.swift */,
 				16E721B41F8AAAE5006D261B /* Promise.swift */,
+				23FDFCF8238E64C100029FDF /* Promise+Mapping.swift */,
+				23FDFCFA238EE2BB00029FDF /* Promise+Sync.swift */,
 				16E721B51F8AAAE5006D261B /* Result+Concurrency.swift */,
 			);
 			path = Source;
@@ -341,10 +347,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				23FDFCF9238E64C100029FDF /* Promise+Mapping.swift in Sources */,
 				230576031F8DD631003B432B /* ConcurrencyHelpers.swift in Sources */,
 				1600958A1F8AAD7F002B6CC7 /* Result+Concurrency.swift in Sources */,
 				16E721961F8AA979006D261B /* ViewController.swift in Sources */,
 				16E721941F8AA979006D261B /* AppDelegate.swift in Sources */,
+				23FDFCFB238EE2BB00029FDF /* Promise+Sync.swift in Sources */,
 				160095891F8AAD7D002B6CC7 /* Promise.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
