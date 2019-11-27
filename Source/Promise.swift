@@ -28,7 +28,7 @@ public class Promise<T, E: Error> {
         future.reject(err)
     }
     
-    fileprivate func complete(withResult result: Result<T, E>) {
+    internal func complete(withResult result: Result<T, E>) {
         future.complete(withResult: result)
     }
 }
@@ -146,17 +146,17 @@ public class Future<T, E: Error> {
         self.result = result
         
         if let success = successBlock {
-            lockQueue.async {
+            lockQueue.sync {
                 success(val)
             }
         }
         if let child = childFuture {
-            lockQueue.async {
+            lockQueue.sync {
                 child.resolve(val)
             }
         }
         if let finally = finallyBlock {
-            lockQueue.async {
+            lockQueue.sync {
                 finally(result)
             }
         }
@@ -171,17 +171,17 @@ public class Future<T, E: Error> {
         self.result = result
         
         if let errBlock = errorBlock {
-            lockQueue.async {
+            lockQueue.sync {
                 errBlock(err)
             }
         }
         if let child = childFuture {
-            lockQueue.async {
+            lockQueue.sync {
                 child.reject(err)
             }
         }
         if let finally = finallyBlock {
-            lockQueue.async {
+            lockQueue.sync {
                 finally(result)
             }
         }
@@ -223,13 +223,14 @@ public extension Future {
 }
 
 public extension Future {
+    
     class func zip(_ futures: [Future<T, E>]) -> Future<[T], E> {
         let promise = Promise<[T], E>()
         let lockQueue = promise.future.lockQueue
         
         futures.forEach {
             $0.finally { (_) in
-                lockQueue.async {
+                lockQueue.sync {
                     let results = futures.compactMap { $0.result }
                     let failures = results.compactMap { $0.failure }
                     if let firstError = failures.first {
@@ -250,30 +251,4 @@ public extension Future {
         return promise.future
     }
     
-    func map<NewValue, NewError: Error>(_ mapBlock:@escaping (Result<T, E>)->(Result<NewValue, NewError>)) -> Future<NewValue, NewError> {
-        let promise = Promise<NewValue, NewError>()
-        
-        finally { (result) in
-            let newResult = mapBlock(result)
-            promise.complete(withResult: newResult)
-        }
-        
-        return promise.future
-    }
-    
-    func autoMap<Q>(_ block:@escaping (T) -> (Q?)) -> Future<Q, Result<T, E>.MapError<Q>> {
-        let promise = Promise<Q, Result<T, E>.MapError<Q>>()
-        
-        finally { (result) in
-            let mapped = result.map(block)
-            switch mapped {
-            case .success(let value):
-                promise.resolve(value)
-            case .failure(let mapErr):
-                promise.reject(mapErr)
-            }
-        }
-        
-        return promise.future
-    }
 }
