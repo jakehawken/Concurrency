@@ -7,13 +7,13 @@ class PromiseTests: QuickSpec {
   // swiftlint:disable:next function_body_length
   override func spec() {
 
-    var subject: Promise<Int>!
+    var subject: Promise<Int, NSError>!
     let noBuenoError = NSError(domain: "No bueno", code: 666, userInfo: nil)
 
     describe("Promise") {
 
         beforeEach {
-            subject = Promise<Int>()
+            subject = Promise<Int, NSError>()
         }
         
         it("should contain an unresolved future") {
@@ -48,7 +48,7 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("using then(), error(), and finally() blocks") {
+        describe("using onSuccess, onFailure, and finally blocks") {
             var successValue: Int?
             var errorValue: NSError?
             var primaryTimestamp: Date?
@@ -59,14 +59,14 @@ class PromiseTests: QuickSpec {
                 errorValue = nil
                 finallyHappened = false
                 
-                subject = Promise<Int>()
+                subject = Promise<Int, NSError>()
                 
-                subject.future.then { (value) in
+                subject.future.onSuccess { (value) in
                     primaryTimestamp = Date()
                     successValue = value
-                }.error { (error) in
+                }.onFailure { (error) in
                   errorValue = error as NSError
-                }.finally {
+                }.finally { (_) in
                     finallyHappened = true
                 }
             }
@@ -110,12 +110,12 @@ class PromiseTests: QuickSpec {
                 var tertiaryTimeStamp: Date?
                 
                 beforeEach {
-                    subject.future.then { (value) in
+                    subject.future.onSuccess { (value) in
                         secondaryTimeStamp = Date()
                         secondarySuccessValue = "\(value)"
                     }
                     
-                    subject.future.then { (value) in
+                    subject.future.onSuccess { (value) in
                         tertiaryTimeStamp = Date()
                         tertiarySuccessValue = Float(value)
                     }
@@ -136,7 +136,7 @@ class PromiseTests: QuickSpec {
         }
         
         describe("using preResolved(_) and preRejected(_)") {
-            var future: Future<Int>?
+            var future: Future<Int, NSError>?
 
             context("when using preResolved") {
                 beforeEach {
@@ -168,18 +168,59 @@ class PromiseTests: QuickSpec {
         }
         
         describe("mapping") {
-            var future: Future<Int>!
-            var mappedFuture: Future<String>!
+            var returnedFuture: Future<String, NSError>!
             
             beforeEach {
-                subject = Promise<Int>()
+                returnedFuture = subject.future.map { (result) -> (Result<String, NSError>) in
+                    switch result {
+                    case .success(let intVal):
+                        return .success("\(intVal)")
+                    case .failure(let nsError):
+                        return .failure(nsError)
+                    }
+                }
+            }
+            
+            context("when the first future fails") {
+                var couldntGetIntError: NSError!
+                
+                beforeEach {
+                    couldntGetIntError = NSError(domain: "No int.", code: 0, userInfo: nil)
+                    subject.reject(couldntGetIntError)
+                }
+                
+                it("should reject the second future") {
+                    expect(returnedFuture.failed).to(beTrue())
+                    expect(returnedFuture.error?.equals(couldntGetIntError)).toEventually(beTrue())
+                }
+            }
+            
+            context("when the first future succeeds") {
+                beforeEach {
+                    subject.resolve(3)
+                }
+                
+                it("should resolve the returned future") {
+                    expect(returnedFuture.succeeded).toEventually(beTrue())
+                    expect(returnedFuture.error).to(beNil())
+                    expect(returnedFuture.value).to(equal("3"))
+                }
+            }
+        }
+        
+        describe("auto-mapping") {
+            var future: Future<Int, NSError>!
+            var mappedFuture: Future<String, Result<Int, NSError>.MapError<String>>!
+            
+            beforeEach {
+                subject = Promise<Int, NSError>()
                 future = subject.future
             }
             
             context("when the map block results in nil") {
                 beforeEach {
                     subject.resolve(3)
-                    mappedFuture = future.map { (_) -> (String?) in
+                    mappedFuture = future.autoMap { (_) -> (String?) in
                         return nil
                     }
                 }
@@ -188,17 +229,14 @@ class PromiseTests: QuickSpec {
                     expect(mappedFuture.isComplete).toEventually(beTrue())
                     expect(mappedFuture.succeeded).toEventually(beFalse())
                     expect(mappedFuture.failed).toEventually(beTrue())
-                    let errorIsExpected = item(mappedFuture.error, isA: NSError.self) {
-                        $0.description == "Concurrency: Could not map value (3) to type String."
-                    }
-                    expect(errorIsExpected).toEventually(beTrue())
+                    expect(mappedFuture.error?.description).toEventually(equal("Could not map value: (3) to output type: String."))
                     expect(mappedFuture.value).toEventually(beNil())
                 }
             }
             
             context("when the map block results in non-nil") {
                 beforeEach {
-                    mappedFuture = future.map { (intValue) -> (String?) in
+                    mappedFuture = future.autoMap { (intValue) -> (String?) in
                         return "\(intValue)"
                     }
                 }
@@ -226,18 +264,15 @@ class PromiseTests: QuickSpec {
                         expect(mappedFuture.isComplete).toEventually(beTrue())
                         expect(mappedFuture.succeeded).toEventually(beFalse())
                         expect(mappedFuture.failed).toEventually(beTrue())
-                        let errorIsExpected = item(mappedFuture.error, isA: NSError.self) {
-                            $0 == noBuenoError
-                        }
-                        expect(errorIsExpected).toEventually(beTrue())
+                        expect(mappedFuture.error).toEventually(equal(.originalError(noBuenoError)))
                         expect(mappedFuture.value).toEventually(beNil())
                     }
                 }
             }
         }
         
-        describe("joining futures") {
-            var future: Future<[Int]>!
+        describe("zipping") {
+            var future: Future<[Int], NSError>!
             let genericError = NSError(domain: "Oops!", code: 0, userInfo: nil)
             let otherError = NSError(domain: "Uh-oh!", code: 1, userInfo: nil)
             var successValues: [Int]?
@@ -250,12 +285,12 @@ class PromiseTests: QuickSpec {
             
             context("when all of the values succeed") {
                 beforeEach {
-                    let intFutures: [Future<Int>] = [Future.preResolved(value: 5),
-                                                  Future.preResolved(value: 3),
-                                                  Future.preResolved(value: 7)]
-                    future = Future.joining(intFutures).then { (values) in
+                    let intFutures: [Future<Int, NSError>] = [Future.preResolved(value: 5),
+                                                              Future.preResolved(value: 3),
+                                                              Future.preResolved(value: 7)]
+                    future = Future.zip(intFutures).onSuccess { (values) in
                         successValues = values
-                    }.error { (error) in
+                    }.onFailure { (error) in
                         errorFromFuture = error
                     }
                 }
@@ -268,12 +303,12 @@ class PromiseTests: QuickSpec {
             
             context("when all of the values fail") {
                 beforeEach {
-                    let intFutures: [Future<Int>] = [Future.preRejected(error: otherError),
+                    let intFutures: [Future<Int, NSError>] = [Future.preRejected(error: otherError),
                                                      Future.preRejected(error: genericError),
                                                      Future.preRejected(error: genericError)]
-                    future = Future.joining(intFutures).then { (values) in
+                    future = Future.zip(intFutures).onSuccess { (values) in
                         successValues = values
-                    }.error { (error) in
+                    }.onFailure { (error) in
                         errorFromFuture = error
                     }
                 }
@@ -287,12 +322,12 @@ class PromiseTests: QuickSpec {
             
             context("when one or more of the values fail") {
                 beforeEach {
-                    let intFutures: [Future<Int>] = [Future.preResolved(value: 5),
+                    let intFutures: [Future<Int, NSError>] = [Future.preResolved(value: 5),
                                                      Future.preRejected(error: genericError),
                                                      Future.preResolved(value: 7)]
-                    future = Future.joining(intFutures).then { (values) in
+                    future = Future.zip(intFutures).onSuccess { (values) in
                         successValues = values
-                    }.error { (error) in
+                    }.onFailure { (error) in
                         errorFromFuture = error
                     }
                 }
@@ -301,62 +336,6 @@ class PromiseTests: QuickSpec {
                     expect(successValues).toEventually(beNil())
                     expect(errorFromFuture?.equals(genericError)).toEventually(beTrue())
                     expect(future.failed).toEventually(beTrue())
-                }
-            }
-        }
-        
-        describe("triggering one future on the resolution of another") {
-            var returnedFuture: Future<String>!
-            var secondFutureShouldSucceed = true
-            var couldntGetStringError: NSError!
-            
-            beforeEach {
-                let intToStringFutureBlock: (Int)->(Future<String>) = { (intVal) in
-                    if secondFutureShouldSucceed {
-                        return Future.preResolved(value: "\(intVal)")
-                    }
-                    couldntGetStringError = NSError(domain: "No string.", code: 1, userInfo: nil)
-                    return Future.preRejected(error: couldntGetStringError)
-                }
-                returnedFuture = subject.future.thenFuture(intToStringFutureBlock)
-            }
-            
-            context("when the first future fails") {
-                var couldntGetIntError: NSError!
-                
-                beforeEach {
-                    couldntGetIntError = NSError(domain: "No int.", code: 0, userInfo: nil)
-                    subject.reject(couldntGetIntError)
-                }
-                
-                it("should reject the second future") {
-                    expect(returnedFuture.failed).to(beTrue())
-                    expect(returnedFuture.error?.equals(couldntGetIntError)).toEventually(beTrue())
-                }
-            }
-            
-            context("when the first future succeeds but the second doesnt") {
-                beforeEach {
-                    secondFutureShouldSucceed = false
-                    subject.resolve(3)
-                }
-                
-                it("should resolve the returned future") {
-                    expect(returnedFuture.failed).toEventually(beTrue())
-                    expect(returnedFuture.error?.equals(couldntGetStringError)).toEventually(beTrue())
-                }
-            }
-            
-            context("when the first future succeeds as does the second") {
-                beforeEach {
-                    secondFutureShouldSucceed = true
-                    subject.resolve(3)
-                }
-                
-                it("should resolve the returned future") {
-                    expect(returnedFuture.succeeded).toEventually(beTrue())
-                    expect(returnedFuture.error).to(beNil())
-                    expect(returnedFuture.value).to(equal("3"))
                 }
             }
         }
