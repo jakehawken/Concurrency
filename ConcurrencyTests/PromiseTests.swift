@@ -209,6 +209,77 @@ class PromiseTests: QuickSpec {
             }
         }
         
+        describe("mapping value") {
+            var returnedFuture: Future<String, NSError>!
+            
+            beforeEach {
+                returnedFuture = subject.future.mapValue { "\($0)" }
+            }
+            
+            context("when the first future fails") {
+                var couldntGetIntError: NSError!
+                
+                beforeEach {
+                    couldntGetIntError = NSError(domain: "No int.", code: 0, userInfo: nil)
+                    subject.reject(couldntGetIntError)
+                }
+                
+                it("should reject the second future") {
+                    expect(returnedFuture.failed).to(beTrue())
+                    expect(returnedFuture.error?.equals(couldntGetIntError)).to(beTrue())
+                }
+            }
+            
+            context("when the first future succeeds") {
+                beforeEach {
+                    subject.resolve(3)
+                }
+                
+                it("should resolve the returned future with the mapped success") {
+                    expect(returnedFuture.succeeded).to(beTrue())
+                    expect(returnedFuture.error).to(beNil())
+                    expect(returnedFuture.value).to(equal("3"))
+                }
+            }
+        }
+        
+        describe("mapping error") {
+            var returnedFuture: Future<Int, BasicTestingError>!
+            
+            beforeEach {
+                returnedFuture = subject.future.mapError { (_) -> BasicTestingError in
+                    return BasicTestingError(message: "Yuh-oh!")
+                }
+            }
+            
+            context("when the first future fails") {
+                var couldntGetIntError: NSError!
+                
+                beforeEach {
+                    couldntGetIntError = NSError(domain: "No int.", code: 0, userInfo: nil)
+                    subject.reject(couldntGetIntError)
+                }
+                
+                it("should reject the second future with the mapped error") {
+                    expect(returnedFuture.failed).to(beTrue())
+                    expect(returnedFuture.error?.equals(couldntGetIntError)).toNot(beTrue())
+                    expect(returnedFuture.error?.message).to(equal("Yuh-oh!"))
+                }
+            }
+            
+            context("when the first future succeeds") {
+                beforeEach {
+                    subject.resolve(3)
+                }
+                
+                it("should resolve the returned future") {
+                    expect(returnedFuture.succeeded).to(beTrue())
+                    expect(returnedFuture.error).to(beNil())
+                    expect(returnedFuture.value).to(equal(3))
+                }
+            }
+        }
+        
         describe("flat-mapping") {
             var future: Future<Int, NSError>!
             var mappedFuture: Future<String, MapError<Int, NSError, String>>!
@@ -409,4 +480,8 @@ extension Date {
     func isAfter(_ otherDate: Date) -> Bool {
         return timeIntervalSince(otherDate) > 0
     }
+}
+
+struct BasicTestingError: Error {
+    let message: String
 }
