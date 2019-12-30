@@ -66,6 +66,9 @@ public extension Future {
             let newVal = mapBlock(value)
             promise.resolve(newVal)
         }
+        onFailure { (error) in
+            promise.reject(error)
+        }
         
         return promise.future
     }
@@ -91,6 +94,9 @@ public extension Future {
         onFailure { (error) in
             let newError = mapBlock(error)
             promise.reject(newError)
+        }
+        onSuccess { (value) in
+            promise.resolve(value)
         }
         
         return promise.future
@@ -129,6 +135,8 @@ public extension Future {
     
     /**
     Chaining method. Takes in a block which will generate a new future, contingent upon the success of the first future. This allows for multiple, serial, asynchronous calls to be chained.
+     
+     This method bears some similarity to `mapResult(_:)` but in this method, the consumer is responsible for generating the second future, as this method is for *chaining* rather than merely *mapping*.
      
      Example:
      ```
