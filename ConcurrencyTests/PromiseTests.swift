@@ -2,6 +2,7 @@
 import Nimble
 import Quick
 
+// swiftlint:disable file_length
 // swiftlint:disable:next type_body_length
 class PromiseTests: QuickSpec {
   // swiftlint:disable:next function_body_length
@@ -167,7 +168,7 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("mapping") {
+        describe("mapping result") {
             var returnedFuture: Future<String, NSError>!
             
             beforeEach {
@@ -208,9 +209,9 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("auto-mapping") {
+        describe("flat-mapping") {
             var future: Future<Int, NSError>!
-            var mappedFuture: Future<String, Result<Int, NSError>.MapError<String>>!
+            var mappedFuture: Future<String, MapError<Int, NSError, String>>!
             
             beforeEach {
                 subject = Promise<Int, NSError>()
@@ -340,9 +341,61 @@ class PromiseTests: QuickSpec {
             }
         }
         
-        describe("blocking") {
+        describe("firstFinished(from:)") {
+            var promise1: Promise<Int, NSError>!
+            var promise2: Promise<Int, NSError>!
+            var promise3: Promise<Int, NSError>!
+            var futures: [Future<Int, NSError>]!
+            var joinedFuture: Future<Int, NSError>!
+            
             beforeEach {
-                <#code#>
+                promise1 = Promise<Int, NSError>()
+                promise2 = Promise<Int, NSError>()
+                promise3 = Promise<Int, NSError>()
+                futures = [promise1.future, promise2.future, promise3.future]
+                joinedFuture = Future.firstFinished(from: futures)
+            }
+            
+            context("when the first finishes first") {
+                beforeEach {
+                    promise1.resolve(1)
+                    promise2.resolve(2)
+                    promise3.resolve(3)
+                }
+                
+                it("should resolve the joined future with the first value") {
+                    expect(joinedFuture.isComplete).to(beTrue())
+                    expect(joinedFuture.succeeded).to(beTrue())
+                    expect(joinedFuture.value).to(equal(1))
+                }
+            }
+            
+            context("when the second finishes first") {
+                beforeEach {
+                    promise2.resolve(2)
+                    promise1.resolve(1)
+                    promise3.resolve(3)
+                }
+                
+                it("should resolve the joined future with the second value") {
+                    expect(joinedFuture.isComplete).to(beTrue())
+                    expect(joinedFuture.succeeded).to(beTrue())
+                    expect(joinedFuture.value).to(equal(2))
+                }
+            }
+            
+            context("when the third finishes first") {
+                beforeEach {
+                    promise3.resolve(3)
+                    promise1.resolve(1)
+                    promise2.resolve(2)
+                }
+                
+                it("should resolve the joined future with the third value") {
+                    expect(joinedFuture.isComplete).to(beTrue())
+                    expect(joinedFuture.succeeded).to(beTrue())
+                    expect(joinedFuture.value).to(equal(3))
+                }
             }
         }
 
