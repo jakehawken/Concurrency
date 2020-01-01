@@ -71,9 +71,9 @@ Unwrapping optionals is already something that Swift developers have to do too o
 
 ### Result
 
-`Result<Success, Failure>` was added in Swift 5, and the people rejoiced. "The people" in this case being everyone who hates `(Success?, Error?)->(`) completion blocks, which, after reading my excellent arguments above, now includes you. In pre-2.0 versions of Concurrency, I had included a Result type, but instead we now include a bunch of extension methods/properties on Swift's native Result.
+`Result<Success, Failure>` was added in Swift 5, and the people rejoiced. "The people" in this case being everyone who hates `(Success?, Error?)->(`) completion blocks, which, after reading my excellent arguments above, now includes you. In pre-2.0 versions of Concurrency, it included a Result type, but instead it now includes a bunch of extension methods/properties on Swift's native Result.
 
-And what do those extensions buy you? Why, *__Sweet, sweet syntactic sugar, of course!__* I've included some functional-style methods to Result which will be very familiar to anyone who's worked with other Promise/Future libraries or with reactive frameworks like RxSwift. I've included `onSuccess(_:)` and `onError(_:)` methods which allow the consumer to implement success blocks and error blocks independently of one another. That means the consumer can implement one, the other, both, or neither. AND, since each of those methods returns a discardable reference to the Result, the consumer can easily chain them, as you can see below.
+And what do those extensions buy you? Why, *__Sweet, sweet syntactic sugar, of course!__* I've included some functional-style methods onto Result which will be very familiar to anyone who's worked with other Promise/Future libraries or with reactive frameworks like RxSwift. I've included `onSuccess(_:)` and `onError(_:)` methods which allow the consumer to implement success blocks and error blocks independently of one another. That means the consumer can implement one, the other, both, or neither. AND, since each of those methods returns a discardable reference to the Result, the consumer can easily chain them, as you can see below.
 
 #### Both:
 
@@ -104,11 +104,11 @@ So, when we have to use completion blocks, these extensions on `Result` provide 
 You see, often, asynchronous work relies on other asynchronous work. In a world of traditional completion blocks, this means, at very least, writing a method that has a completion handler, which in turn calls a method which has a completion handler. And god forbid your asynchronous method need to call multiple completion blocks in succession. Then, even if you only implement the success blocks (yikes!) you'd still end up with a nightmare like this:
 
 ```Swift
-func getAStringWithTwoNumbersInIt(_ completionHandler:(Result<String>)->()) {
+func getAStringWithTwoNumbersInIt(_ completionHandler:(Result<String, MyError>)->()) {
   getInt1 { result1 in
     result1.onSuccess { int1 in
       getInt2 { result2 in
-        result1. onSuccess { int2 in
+        result1.onSuccess { int2 in
            completionHandler(.success("I got \(int1) and \(int2)! Yay!"))
         }
       }
@@ -183,7 +183,7 @@ Calling these give the future its completion behavior. If somehow the call comes
 So, consuming the future is done like so:
 
 ```Swift
-let future: Future<AnEarful> = goCallYourMother()
+let future: Future<AnEarful, PhoneCallError> = goCallYourMother()
 future.onSuccess { (earful) in
   self.hooBoy(earful)
 }.onError { (error) in
@@ -205,13 +205,13 @@ __Side note:__ There's also a handy `finally(_:)` method as well, which will add
 
 The real magic about Future is that `onSuccess(_:)` and `onError(_:)` can be called as many times as needed, and each of the actions will execute in order. So, if you have a method which fetches a value and returns a promise, and there are multiple layers of the app that need to be updated with that value, you can pass that future along from method to method, tacking on success actions as you go.
 
-Yes, I know, an example is in order. So, let's say we have that same method from earlier: `func goCallYourMother() -> Future<AnEarful>`. We could propagate it along like so:
+Yes, I know, an example is in order. So, let's say we have that same method from earlier: `func goCallYourMother() -> Future<AnEarful, PhoneCallError>`. We could propagate it along like so:
 
 ```Swift
-func callYourMomAndThenReflect() -> Future<AnEarful> {
-  return goCallYourMother().then { (earful) in
+func callYourMomAndThenReflect() -> Future<AnEarful, PhoneCallError> {
+  return goCallYourMother().onSuccess { (earful) in
     self.hooBoyWhatAn(earful) // a local action that needs to happen
-  }.error { (error) in
+  }.onError { (error) in
     self.wellAtLeastITried(error) //also a local action that needs to happen
   }
 }
@@ -415,12 +415,12 @@ Whichever future (if any) succeeds first will trigger the success of the joined 
 Well, two last things. Before I go, I just wanted to point out these two convenience methods on Future. They are
 
 ```Swift
-static func preResolved(value: T) -> Future<T>
+static func preResolved(value: T) -> Future<T, E>
 ```
 and
 
 ```Swift
-static func preRejected(error: Error) -> Future<T>
+static func preRejected(error: E) -> Future<T, E>
 ```
 
 These simply generated futures that are already complete on creation. There are two primary uses for these methods:
@@ -443,7 +443,7 @@ And of course, keep your eye out for version updates!
 Concurrency is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
-```ruby
+```Ruby
 pod "Concurrency"
 ```
 
