@@ -49,7 +49,7 @@ public extension Result {
     - Parameter mapBlock: The mapping block, which is executed if the first result is a success. The block takes a single argument, which is of the success type `Success` of the original future, and returns an optional: `TargetType?`. TargetType is the desired mapped value.
     - returns: A new result where Success type is `TargetType` and the error type is `MapError<Success, Failure, TargetType>`
     */
-    func map<TargetType>(_ mapBlock: (Success) -> (TargetType?)) -> Result<TargetType, MapError<Success, Failure, TargetType>> {
+    func flatMap<TargetType>(_ mapBlock: (Success) -> (TargetType?)) -> Result<TargetType, MapError<Success, Failure, TargetType>> {
         switch self {
         case .success(let value):
             if let transformedValue = mapBlock(value) {

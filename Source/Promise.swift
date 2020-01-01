@@ -75,10 +75,10 @@ public class Promise<T, E: Error> {
  A Future is an object which represents a one-time unit of failable, asynchronous work. Generically typed `Future<T,E>` where `T` is the success type and `E` is the error type. Since futures are single-use, all completion attempts after the first will be no-ops.
 */
 public class Future<T, E: Error> {
-    public typealias ThenBlock  = (T) -> Void
+    public typealias SuccessBlock  = (T) -> Void
     public typealias ErrorBlock = (E) -> Void
 
-    private var successBlock: ThenBlock?
+    private var successBlock: SuccessBlock?
     private var errorBlock: ErrorBlock?
     private var finallyBlock: ((Result<T, E>) -> Void)?
     private var childFuture: Future?
@@ -139,7 +139,7 @@ public class Future<T, E: Error> {
     - Parameter callback: The block to be executed on success. Block takes a single argument, which is of the success type of the future.
     - returns: The future iself, as a `@discardableResult` to allow for chaining of callback methods.
     */
-    @discardableResult public func onSuccess(_ callback: @escaping ThenBlock) -> Future<T, E> {
+    @discardableResult public func onSuccess(_ callback: @escaping SuccessBlock) -> Future<T, E> {
         if let value = value { //If the future has already been resolved with a value. Call the block immediately.
             callback(value)
         }
@@ -312,7 +312,7 @@ public extension Future {
      - Parameter futures: An array of like-typed futures which must all succeed in order for the returned future to succeed.
      - returns: A future where the success value is an array of the success values from the array of promises, and the error is whichever error happened first.
     */
-    class func zip(_ futures: [Future<T, E>]) -> Future<[T], E> {
+    static func zip(_ futures: [Future<T, E>]) -> Future<[T], E> {
         let promise = Promise<[T], E>()
         
         futures.forEach {
@@ -344,7 +344,7 @@ public extension Future {
      - Parameter futures: An array of like-typed futures which must all succeed in order for the returned future to succeed.
      - returns: A future that completes with the state/value of which ever future in the array finishes first.
     */
-    class func firstFinished(from futures: [Future]) -> Future {
+    static func firstFinished(from futures: [Future]) -> Future {
         let promise = Promise<T, E>()
         
         futures.forEach {
@@ -362,10 +362,7 @@ public extension Future {
                     guard failures.count == futures.count else {
                         return
                     }
-                    guard let first = failures.first else {
-                        return
-                    }
-                    promise.reject(first)
+                    promise.reject(error)
                 }
             }
         }

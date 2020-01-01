@@ -9,12 +9,12 @@ import Foundation
 public extension Future {
     
     /**
-    Mutation method. Generate a new Future with potentially different success and/or error types.
+    Mutation method. Generates a new Future with potentially different success and/or error types.
      
      Example:
      ```
      let myFuture = Promise<Int, MyIntError>.future
-     let myNewFuture = myFuture.map { (result) -> Result<String, MyStringError>
+     let myNewFuture = myFuture.mapResult { (result) -> Result<String, MyStringError>
         switch result {
         case .success(let firstValue):
             if firstValue < 5 {
@@ -123,7 +123,7 @@ public extension Future {
         let promise = Promise<Q, MapError<T, E, Q>>()
         
         finally { (result) in
-            result.map(mapBlock).onSuccess { (value) in
+            result.flatMap(mapBlock).onSuccess { (value) in
                 promise.resolve(value)
             }.onError { (mapError) in
                 promise.reject(mapError)
@@ -178,4 +178,21 @@ public extension Promise {
         future.finally(complete(withResult:))
     }
     
+}
+
+extension Future {
+    
+    /// Uses `mapError(_:)` and employs the automatic bridging to NSError that is included in Foundation's Objective-C/Swift interoperability.
+    @discardableResult public func mapToNSError() -> Future<T, NSError> {
+        return mapError { $0 as NSError }
+    }
+    
+    /// Convenience method for type erasure of a future.
+    @discardableResult public func typeErased() -> Future<Any, NSError> {
+        return mapValue { (value) -> Any in
+            return value
+        }
+        .mapToNSError()
+    }
+
 }
