@@ -42,7 +42,7 @@ Though I did not consult their source code, my implementation of Promise/Future 
 
 ## The First Set of Problems to Solve
 
-Let's face it: completion handlers in Swift are a total pain. Really quickly, let's break down everything obnoxious about the standard callback pattern in Swift:
+Let's face it: completion handlers in Swift can be pain. Really quickly, let's break down everything obnoxious about the standard callback pattern in Swift:
 
 ```Swift
 func getAString(_ completionHandler: (String?, Error?)->())
