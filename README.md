@@ -149,7 +149,7 @@ So, if you were writing a method that returns a promise solely for the purpose o
 func goCallYourMother() -> Future<AnEarful, CallError> {
   let promise = Promise<AnEarful, CallError>()
 
-  callYourMotherWithCompletion { (earful, error) in
+  callYourMotherWithCompletion { earful, error in
     if let earful = earful {
       promise.resolve(earful)
     }
@@ -184,9 +184,9 @@ So, consuming the future is done like so:
 
 ```Swift
 let future: Future<AnEarful, PhoneCallError> = goCallYourMother()
-future.onSuccess { (earful) in
+future.onSuccess { earful in
   self.hooBoy(earful)
-}.onError { (error) in
+}.onError { error in
   self.wellAtLeastITried(error)
 }
 ```
@@ -194,9 +194,9 @@ future.onSuccess { (earful) in
 or, if you want to be even more concise, since these methods all return `@discardableResult` references, there's no need to assign the future to a variable at all:
 
 ```Swift
-goCallYourMother().onSuccess { (earful) in
+goCallYourMother().onSuccess { earful in
   self.hooBoyWhatAn(earful)
-}.onError { (error) in
+}.onError { error in
   self.wellAtLeastITried(error)
 }
 ```
